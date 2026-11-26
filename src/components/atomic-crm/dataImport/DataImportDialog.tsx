@@ -27,6 +27,7 @@ import { FileInput } from "@/components/admin/file-input";
 import { FileField } from "@/components/admin/file-field";
 
 import { HEADER_EXAMPLES, sampleHeadersOf } from "./columnMapping";
+import { ACCEPTED_TABLE_FILES } from "./readTableFile";
 import type { ImportableResource } from "./types";
 import type { ImportableResourceName } from "./useImportableResources";
 
@@ -127,7 +128,7 @@ export function DataImportDialog({
                   })}
                   <br />
                   {translate("crm.data_import.excel_hint", {
-                    _: "Excel file? In Excel choose File → Save As → CSV UTF-8. In Google Sheets choose File → Download → CSV.",
+                    _: "Any table file works: Excel (.xlsx, .xls), CSV, OpenDocument (.ods), Numbers or tab-separated text. From Google Sheets: File → Download → Microsoft Excel.",
                   })}
                 </span>
                 <Link
@@ -143,11 +144,7 @@ export function DataImportDialog({
             <FileInput
               source="csv"
               label="crm.data_import.csv_file"
-              // Windows reports Excel-made CSV files as application/vnd.ms-excel
-              accept={{
-                "text/csv": [".csv"],
-                "application/vnd.ms-excel": [".csv"],
-              }}
+              accept={ACCEPTED_TABLE_FILES}
               onChange={setFile}
             >
               <FileField source="src" title="title" target="_blank" />

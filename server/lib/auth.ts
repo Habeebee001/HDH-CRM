@@ -620,6 +620,14 @@ const adminUsers = async (req: Req, res: Res, url: URL, id?: string) => {
           [body.id ?? randomUUID(), body.email.toLowerCase(), encrypted, JSON.stringify(body.user_metadata ?? {}), body.email_confirm === true],
         )
       ).rows[0];
+      // Users created this way (tests only) can open the first workspace, as
+      // every user could before workspaces existed.
+      await pool.query(
+        `insert into public.workspace_members (workspace_id, sales_id)
+         select (select min(id) from public.workspaces), s.id from public.sales s where s.user_id = $1
+         on conflict do nothing`,
+        [user.id],
+      );
       sendJson(res, 200, userJson(user));
     } catch (error) {
       if ((error as { code?: string }).code === "23505") {

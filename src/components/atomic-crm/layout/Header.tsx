@@ -1,4 +1,5 @@
 import {
+  Building,
   Building2,
   FileText,
   Handshake,
@@ -22,6 +23,7 @@ import { ImportPage } from "../misc/ImportPage";
 import { ChangelogPage } from "../misc/ChangelogPage";
 import { GlobalSearchButton } from "../search/GlobalSearchButton";
 import { splitBrandTitle } from "../misc/brand";
+import { WorkspaceSwitcher } from "../workspaces/WorkspaceSwitcher";
 
 const Header = () => {
   const { darkModeLogo, title } = useConfigurationContext();
@@ -70,6 +72,7 @@ const Header = () => {
                 ) : null}
               </span>
             </Link>
+            <WorkspaceSwitcher />
             <nav className="flex h-full items-stretch">
               <NavigationTab
                 label={translate("ra.page.dashboard")}
@@ -110,6 +113,9 @@ const Header = () => {
                 <ProfileMenu />
                 <CanAccess resource="sales" action="list">
                   <UsersMenu />
+                </CanAccess>
+                <CanAccess resource="workspaces" action="edit">
+                  <WorkspacesMenu />
                 </CanAccess>
                 <CanAccess resource="configuration" action="edit">
                   <SettingsMenu />
@@ -192,6 +198,23 @@ const ProfileMenu = () => {
     >
       <User />
       {translate("crm.profile.title")}
+    </DropdownMenuItem>
+  );
+};
+
+const WorkspacesMenu = () => {
+  const translate = useTranslate();
+  const userMenuContext = useUserMenu();
+  if (!userMenuContext) {
+    throw new Error("<WorkspacesMenu> must be used inside <UserMenu>");
+  }
+  return (
+    <DropdownMenuItem
+      onClick={userMenuContext.onClose}
+      render={<Link to="/workspaces" className="flex items-center gap-2" />}
+    >
+      <Building />
+      {translate("crm.workspaces.title", { _: "Workspaces" })}
     </DropdownMenuItem>
   );
 };

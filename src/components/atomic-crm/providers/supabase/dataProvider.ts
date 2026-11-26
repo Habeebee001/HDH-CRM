@@ -1,4 +1,4 @@
-import { supabaseDataProvider } from "ra-supabase-core";
+import { supabaseDataProvider, supabaseHttpClient } from "ra-supabase-core";
 import {
   HttpError,
   withLifecycleCallbacks,
@@ -24,12 +24,20 @@ import { config } from "../../root/config";
 import { getIsInitialized } from "./authProvider";
 import { searchDealCategories } from "./searchDealCategories";
 import { getSupabaseClient } from "./supabase";
+import { withWorkspaceHeader } from "../../workspaces/currentWorkspace";
 
 const getBaseDataProvider = () =>
   supabaseDataProvider({
     instanceUrl: config.supabaseUrl!,
     apiKey: config.supabasePublishableKey!,
     supabaseClient: getSupabaseClient(),
+    // Every list, record and change is made in the current workspace
+    httpClient: withWorkspaceHeader(
+      supabaseHttpClient({
+        apiKey: config.supabasePublishableKey!,
+        supabaseClient: getSupabaseClient(),
+      }),
+    ),
     sortOrder: "asc,desc.nullslast" as any,
   });
 
@@ -281,6 +289,23 @@ const getDataProviderWithCustomMethods = () => {
         throw new HttpError("Failed to search", status, error);
       }
       return data ?? [];
+    },
+    /** Chooses who may open a workspace (administrators only) */
+    async setWorkspaceMembers(
+      workspaceId: Identifier,
+      memberIds: Identifier[],
+    ): Promise<void> {
+      const { error, status } = await getSupabaseClient().rpc(
+        "set_workspace_members",
+        {
+          target_workspace: Number(workspaceId),
+          member_ids: memberIds.map(Number),
+        },
+      );
+      if (error) {
+        console.error("set_workspace_members.error", error);
+        throw new HttpError(error.message, status, error);
+      }
     },
     async mergeContacts(sourceId: Identifier, targetId: Identifier) {
       const { data, error } = await getSupabaseClient().functions.invoke(

@@ -443,7 +443,7 @@ export const englishCrmMessages = {
       upcoming_tasks: "Upcoming Tasks",
     },
     data_import: {
-      button: "Import CSV",
+      button: "Import file",
       complete:
         "Import complete. Imported %{importCount} records, with %{errorCount} errors",
       complete_with_errors:
@@ -451,10 +451,15 @@ export const englishCrmMessages = {
       columns_hint:
         "Columns: %{columns}. Everyday names such as %{examples} are recognised too.",
       excel_hint:
-        "Excel file? In Excel choose File → Save As → CSV UTF-8. In Google Sheets choose File → Download → CSV.",
+        "Any table file works: Excel (.xlsx, .xls), CSV, OpenDocument (.ods), Numbers or tab-separated text. From Google Sheets: File → Download → Microsoft Excel.",
       problem: {
+        empty: "This file is empty: there is no table to import.",
+        unreadable:
+          "This file could not be read. Make sure it is an Excel, OpenDocument, Numbers or CSV file, then try again.",
+        protected:
+          "This file is protected by a password. Open it, remove the password (in Excel: File → Info → Protect Workbook), save it and try again.",
         no_columns:
-          "None of the columns of this file were recognised (found: %{found}). The first row must hold the column names, for example: %{expected}. An Excel file must be saved as CSV first.",
+          "None of the columns of this file were recognised (found: %{found}). One of the first rows must hold the column names, for example: %{expected}.",
         no_contact_columns:
           "This file has no column for the contact's name, email or phone (found: %{found}). Add a column such as “Name”, “Email” or “Phone”, or download the sample.",
         no_company_name:
@@ -464,9 +469,9 @@ export const englishCrmMessages = {
         looks_like_contacts:
           "This file looks like a list of people (found: %{found}). To import people, open Contacts and use Import there.",
       },
-      csv_file: "CSV File",
+      csv_file: "File (Excel, CSV, OpenDocument…)",
       error:
-        "Failed to import this file, please make sure you provided a valid CSV file.",
+        "This file could not be imported. Make sure it is a spreadsheet (Excel, OpenDocument, Numbers) or a CSV file.",
       in_progress: "Import in progress…",
       progress:
         "Imported %{importCount} / %{rowCount} records, with %{errorCount} errors.",

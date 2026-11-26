@@ -3,6 +3,7 @@ import { useCallback, useMemo, useRef, useState } from "react";
 
 import { findHeaderRow } from "../dataImport/columnMapping";
 import { describeImportError } from "../dataImport/describeImportError";
+import { readTableFile, TableFileError } from "../dataImport/readTableFile";
 
 /**
  * What a batch reports: the number of records created, or that number with the
@@ -28,22 +29,39 @@ type ColumnPlan = {
   problem?: { messageKey: string; messageArgs: Record<string, string> };
 };
 
+/** The first rows of a table, blank ones included (indexes are row numbers) */
+const firstRows = (text: string, count: number): string[][] =>
+  Papa.parse<string[]>(text, {
+    preview: count,
+    skipEmptyLines: false,
+  }).data.map((row) => row.map((cell) => String(cell ?? "")));
+
 /**
- * The first lines of the file, blank ones included so that a row's index is
- * its line number (Papa Parse's skipFirstNLines counts lines).
+ * The table from its header row on: title rows above it are not records.
+ * Whole rows are dropped and the rest written back as CSV, which is exact
+ * whatever the line endings or the line breaks inside quoted cells (Papa
+ * Parse's cursor can stop one row too far with Windows line endings).
  */
-const readFirstRows = (file: File, count: number) =>
-  new Promise<string[][]>((resolve, reject) => {
-    Papa.parse<string[]>(file, {
-      preview: count,
-      skipEmptyLines: false,
-      complete: (results) =>
-        resolve(
-          results.data.map((row) => row.map((cell) => String(cell ?? ""))),
-        ),
-      error: reject,
-    });
-  });
+const fromRow = (text: string, row: number) => {
+  if (row <= 0) return text;
+  const rows = Papa.parse<string[]>(text, { skipEmptyLines: false }).data;
+  return Papa.unparse(rows.slice(row));
+};
+
+const FILE_PROBLEMS = {
+  empty: [
+    "crm.data_import.problem.empty",
+    "This file is empty: there is no table to import.",
+  ],
+  unreadable: [
+    "crm.data_import.problem.unreadable",
+    "This file could not be read. Make sure it is an Excel, OpenDocument, Numbers or CSV file, then try again.",
+  ],
+  protected: [
+    "crm.data_import.problem.protected",
+    "This file is protected by a password. Open it, remove the password (in Excel: File → Info → Protect Workbook), save it and try again.",
+  ],
+} as const;
 
 export type ImportState =
   | {
@@ -112,13 +130,42 @@ export function usePapaParse<T>({
 
       const importId = importIdRef.current;
 
+      // Any table file (Excel, OpenDocument, Numbers, CSV…) becomes CSV text.
+      // In a workbook, the sheet where the most columns are recognised wins.
+      let text: string;
+      try {
+        ({ text } = await readTableFile(
+          file,
+          planColumns
+            ? (rows) =>
+                Object.keys(
+                  planColumns(rows[findHeaderRow(rows, planColumns)] ?? [])
+                    .matched ?? {},
+                ).length
+            : undefined,
+        ));
+      } catch (error) {
+        console.error(error);
+        if (importIdRef.current !== importId) return;
+        const [key, message] =
+          FILE_PROBLEMS[
+            error instanceof TableFileError ? error.reason : "unreadable"
+          ];
+        setImporter({
+          state: "error",
+          error: new ImportFileError(key, { _: message }),
+        });
+        return;
+      }
+      if (importIdRef.current !== importId) return;
+
       // Read the header row first: a file missing a required column is refused
       // with an explanation instead of failing on every row.
       let columnNames: string[] | undefined;
       let headerRow = 0;
       if (planColumns) {
         try {
-          const rows = await readFirstRows(file, 15);
+          const rows = firstRows(text, 15);
           headerRow = findHeaderRow(rows, planColumns);
           const plan = planColumns(rows[headerRow] ?? []);
           if (importIdRef.current !== importId) return;
@@ -140,10 +187,8 @@ export function usePapaParse<T>({
         }
       }
 
-      Papa.parse<T>(file, {
+      Papa.parse<T>(fromRow(text, headerRow), {
         header: true,
-        // Title lines above the column names are not records
-        skipFirstNLines: headerRow,
         // Rows holding only separators (",,,,") are left over by spreadsheets
         skipEmptyLines: "greedy",
         transformHeader: columnNames
@@ -232,13 +277,6 @@ export function usePapaParse<T>({
                 }
               : previous,
           );
-        },
-        error(error) {
-          console.error(error);
-          setImporter({
-            state: "error",
-            error,
-          });
         },
         // Numeric-looking cells are converted, except where a leading zero
         // carries meaning: a "02134" zipcode would be stored as 2134.

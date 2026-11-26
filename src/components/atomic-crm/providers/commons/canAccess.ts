@@ -27,5 +27,10 @@ export const canAccess = <
     return false;
   }
 
+  // Non admins can switch between their workspaces, not manage them
+  if (params.resource === "workspaces") {
+    return false;
+  }
+
   return true;
 };

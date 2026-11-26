@@ -79,7 +79,7 @@ const ImportHarness = ({ children }: { children?: ReactNode }) => (
 type Screen = Awaited<ReturnType<typeof render>>;
 
 const openImportDialog = (screen: Screen) =>
-  screen.getByRole("button", { name: /import csv/i }).click();
+  screen.getByRole("button", { name: /import file/i }).click();
 
 const selectCsvFile = () => {
   const input = document.querySelector<HTMLInputElement>('input[type="file"]');
@@ -198,7 +198,7 @@ describe("data import", () => {
     await startImport(screen);
 
     await expect
-      .element(screen.getByRole("button", { name: /import csv/i }))
+      .element(screen.getByRole("button", { name: /import file/i }))
       .toBeDisabled();
 
     finishRemainingBatchesFast();
@@ -207,7 +207,7 @@ describe("data import", () => {
       .element(screen.getByText(/Import complete/))
       .toBeInTheDocument();
     await expect
-      .element(screen.getByRole("button", { name: /import csv/i }))
+      .element(screen.getByRole("button", { name: /import file/i }))
       .toBeEnabled();
   });
 
@@ -269,7 +269,7 @@ describe("data import", () => {
       .element(screen.getByText("contact list unmounted"))
       .toBeVisible();
     await expect
-      .element(screen.getByRole("button", { name: /import csv/i }))
+      .element(screen.getByRole("button", { name: /import file/i }))
       .not.toBeInTheDocument();
 
     await expect

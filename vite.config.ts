@@ -43,7 +43,14 @@ export default defineConfig({
         // config.js is rewritten at deploy time: a precached copy would go stale.
         // stats.html is the bundle size report: users never need it, and
         // precaching it made every update heavier on mobile data.
-        globIgnores: ["**/node_modules/**/*", "config.js", "stats.html"],
+        // The spreadsheet reader (SheetJS) is only downloaded when a
+        // spreadsheet is imported.
+        globIgnores: [
+          "**/node_modules/**/*",
+          "config.js",
+          "stats.html",
+          "**/xlsx-*.js",
+        ],
         // The HDH CRM server answers these on the app's own origin (invitation
         // and password links, file downloads): never replace them with the app.
         navigateFallbackDenylist: [

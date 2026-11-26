@@ -93,6 +93,33 @@ team.
   password, open them in **Users** and click **Password link**.
 - **With email set up** (below): invitations and password resets are emailed.
 
+### Workspaces (branches or businesses)
+
+Each workspace has its own contacts, companies, deals, notes, tasks and tags.
+The data you had before workspaces existed is in **Main workspace** (rename
+it as you like).
+
+- **Switch** with the workspace button next to the logo (top left; top of
+  the screen on phones).
+- **Create, rename, delete** (administrators): workspace button → **Manage
+  workspaces**, or the user menu → **Workspaces**. Only an empty workspace
+  can be deleted, and there is always at least one.
+- **Who sees what**: administrators open every workspace. Other users open
+  the workspaces ticked for them (**Manage workspaces** → pencil → *Who can
+  open it*). A new user gets the workspace they were invited from.
+
+The database itself enforces this: a user can never read or change the data
+of a workspace they were not given.
+
+### Importing files
+
+**Import file** (on Contacts, Companies and Deals) accepts any table file:
+Excel (.xlsx, .xls), CSV, OpenDocument (.ods), Apple Numbers and
+tab-separated text. Records go into the workspace you are in. Common column
+names ("Customer Name", "Phone No", "Deal Name", "Value", "Status"…) are
+recognised, title rows above the column names are skipped, and in a workbook
+the sheet that looks most like the chosen list is imported.
+
 ---
 
 ## Optional settings

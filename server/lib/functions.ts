@@ -88,6 +88,22 @@ const normalizeSecondaryEmails = (value: unknown): string[] | undefined =>
       ]
     : undefined;
 
+/**
+ * The workspace a request is made in (X-Workspace-Id, sent by the app), or the
+ * first workspace when the header is missing or names no workspace.
+ */
+const requestWorkspace = async (db: Queryable, req: Req): Promise<number> => {
+  const requested = Number(req.headers["x-workspace-id"]);
+  const { rows } = await db.query<{ id: number }>(
+    `select coalesce(
+       (select id from public.workspaces where id = $1),
+       (select min(id) from public.workspaces)
+     ) as id`,
+    [Number.isSafeInteger(requested) ? requested : null],
+  );
+  return rows[0].id;
+};
+
 const inviteUser = async (req: Req, res: Res, current: Sale) => {
   const body = await readJson<{
     email?: string;
@@ -120,12 +136,19 @@ const inviteUser = async (req: Req, res: Res, current: Sale) => {
         [userId],
       );
     }
-    return (
+    const created = (
       await db.query<Sale>(
         "update public.sales set disabled = $2, administrator = $3 where user_id = $1 returning *",
         [userId, body.disabled === true, body.administrator === true],
       )
     ).rows[0];
+    // The new user can open the workspace they were invited from; administrators
+    // add them to others on the Workspaces page.
+    await db.query(
+      "insert into public.workspace_members (workspace_id, sales_id) values ($1, $2) on conflict do nothing",
+      [await requestWorkspace(db, req), created.id],
+    );
+    return created;
   });
 
   const link = await createOneTimeLink(pool, req, userId, "invite");
@@ -263,13 +286,27 @@ const passwordLink = async (req: Req, res: Res, current: Sale) => {
   sendJson(res, 200, { data: { link, type, email_sent: emailSent } });
 };
 
-const mergeContacts = async (req: Req, res: Res) => {
+const mergeContacts = async (req: Req, res: Res, context: AuthContext) => {
   const body = await readJson<{ loserId?: number; winnerId?: number }>(req);
   const loserId = Number(body.loserId);
   const winnerId = Number(body.winnerId);
   if (!Number.isInteger(loserId) || !Number.isInteger(winnerId) || loserId === winnerId) {
     throw fail(400, "Missing loserId or winnerId");
   }
+  // merge_contacts runs with the server's rights (no row level security):
+  // both contacts must be in one workspace this user may open.
+  const { rows } = await pool.query<{ workspace_id: number }>(
+    "select workspace_id from public.contacts where id = any($1::bigint[])",
+    [[loserId, winnerId]],
+  );
+  if (rows.length !== 2 || rows[0].workspace_id !== rows[1].workspace_id) {
+    throw fail(400, "Both contacts must exist in the same workspace");
+  }
+  const access = await pool.query<{ allowed: boolean }>(
+    "select public.user_can_access_workspace($1, $2) as allowed",
+    [rows[0].workspace_id, context.user.id],
+  );
+  if (!access.rows[0]?.allowed) throw fail(403, "Not allowed in this workspace");
   try {
     await pool.query("select public.merge_contacts($1::bigint, $2::bigint)", [loserId, winnerId]);
   } catch (error) {
@@ -295,8 +332,8 @@ export const handleFunctions = async (req: Req, res: Res, url: URL) => {
       return await passwordLink(req, res, sale);
     }
     if (name === "merge_contacts" && method === "POST") {
-      await requireSale(req);
-      return await mergeContacts(req, res);
+      const context = await requireSale(req);
+      return await mergeContacts(req, res, context);
     }
     throw fail(404, "Function not found");
   } catch (error) {

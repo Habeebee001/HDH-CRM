@@ -4,6 +4,8 @@ import { Link } from "react-router";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
+import { useWorkspaces } from "../workspaces/WorkspaceContext";
+
 const getGreetingKey = (hour: number) =>
   hour < 12
     ? (["crm.dashboard.greeting.morning", "Good morning"] as const)
@@ -16,6 +18,7 @@ const getGreetingKey = (hour: number) =>
  */
 export const DashboardHeader = () => {
   const { identity } = useGetIdentity();
+  const { current: workspace, workspaces } = useWorkspaces();
   const translate = useTranslate();
   const [locale = "en"] = useLocaleState();
   const now = new Date();
@@ -31,7 +34,13 @@ export const DashboardHeader = () => {
   return (
     <div className="mb-8 flex flex-col gap-5 border-b border-border pb-8 md:flex-row md:items-end md:justify-between">
       <div>
-        <p className="eyebrow">{today}</p>
+        <p className="eyebrow">
+          {today}
+          {/* With several workspaces, say which one this dashboard is about */}
+          {workspace && workspaces.length > 1 ? (
+            <span className="text-brand"> · {workspace.name}</span>
+          ) : null}
+        </p>
         <h1 className="font-display mt-3 text-4xl leading-tight">
           {translate(greetingKey, { _: greetingDefault })}
           {firstName ? (

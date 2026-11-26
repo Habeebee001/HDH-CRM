@@ -106,7 +106,7 @@ describe("DataImportButton", () => {
     async (resource, heading) => {
       const screen = await render(<SingleResource resource={resource} />);
 
-      await screen.getByRole("button", { name: "Import CSV" }).click();
+      await screen.getByRole("button", { name: "Import file" }).click();
 
       await expect
         .element(screen.getByRole("heading", { name: heading }))
@@ -120,7 +120,7 @@ describe("DataImportButton", () => {
   it("offers the sample CSV of the imported resource", async () => {
     const screen = await render(<SingleResource resource="deals" />);
 
-    await screen.getByRole("button", { name: "Import CSV" }).click();
+    await screen.getByRole("button", { name: "Import file" }).click();
 
     await expect
       .element(screen.getByRole("link", { name: "Download CSV sample" }))
@@ -189,7 +189,7 @@ describe("DataImportButton", () => {
     const screen = await render(<SingleResource resource="deals" />);
 
     await expect
-      .element(screen.getByRole("button", { name: "Import CSV" }))
+      .element(screen.getByRole("button", { name: "Import file" }))
       .not.toBeInTheDocument();
   });
 
@@ -292,7 +292,7 @@ describe("DataImportButton", () => {
     await screen.getByRole("listbox").getByText("Deals").click();
 
     await screen
-      .getByLabelText("CSV File")
+      .getByLabelText("File (Excel, CSV, OpenDocument…)")
       .upload(
         csvFile("deals.csv", [
           "name,company,stage,amount,expected_closing_date",
@@ -317,6 +317,60 @@ describe("DataImportButton", () => {
     expect(deals[0].expected_closing_date).toBe("2026-09-30");
   });
 
+  it("skips the title rows above the column names, with Windows line endings", async () => {
+    const dataProvider = createDataProvider({
+      db: createCrmDb(),
+      latency: 0,
+      silent: true,
+    });
+    const screen = await render(
+      <StoryWrapper dataProvider={dataProvider}>
+        <DataImportButton resource="companies" />
+      </StoryWrapper>,
+    );
+
+    await screen.getByRole("button", { name: "Import file" }).click();
+    await screen
+      .getByLabelText("File (Excel, CSV, OpenDocument…)")
+      .upload(
+        new File(
+          [
+            [
+              "HDH CLIENT COMPANIES 2026,,",
+              ",,",
+              "Company Name,City,Phone",
+              "Zenith Ventures,Lagos,08031234567",
+              "Abuja Steel Works,Abuja,9087776666",
+            ].join("\r\n"),
+          ],
+          "companies.csv",
+          { type: "text/csv" },
+        ),
+      );
+    await screen.getByRole("button", { name: "Start import" }).click();
+
+    await expect
+      .element(
+        screen.getByText("Import complete. Imported 2 records, with 0 errors"),
+      )
+      .toBeVisible();
+    const { data: companies } = await listAll(dataProvider, "companies");
+    const imported = companies.filter(({ name }) =>
+      ["Zenith Ventures", "Abuja Steel Works"].includes(name),
+    );
+    expect(
+      imported.map(({ name, city, phone_number }) => [
+        name,
+        city,
+        phone_number,
+      ]),
+    ).toEqual([
+      ["Zenith Ventures", "Lagos", "08031234567"],
+      // Excel dropped the 0 of this mobile number: it is put back
+      ["Abuja Steel Works", "Abuja", "09087776666"],
+    ]);
+  });
+
   it("keeps the leading zero of the text columns of a company CSV", async () => {
     const dataProvider = createDataProvider({
       db: createCrmDb(),
@@ -329,9 +383,9 @@ describe("DataImportButton", () => {
       </StoryWrapper>,
     );
 
-    await screen.getByRole("button", { name: "Import CSV" }).click();
+    await screen.getByRole("button", { name: "Import file" }).click();
     await screen
-      .getByLabelText("CSV File")
+      .getByLabelText("File (Excel, CSV, OpenDocument…)")
       .upload(
         csvFile("companies.csv", [
           "name,zipcode,phone_number,tax_identifier",
@@ -362,9 +416,9 @@ describe("DataImportButton", () => {
       </StoryWrapper>,
     );
 
-    await screen.getByRole("button", { name: "Import CSV" }).click();
+    await screen.getByRole("button", { name: "Import file" }).click();
     await screen
-      .getByLabelText("CSV File")
+      .getByLabelText("File (Excel, CSV, OpenDocument…)")
       .upload(
         csvFile("contacts.csv", [
           "first_name,last_name,phone_work,phone_home,phone_other",
@@ -406,9 +460,9 @@ describe("DataImportButton", () => {
       </StoryWrapper>,
     );
 
-    await screen.getByRole("button", { name: "Import CSV" }).click();
+    await screen.getByRole("button", { name: "Import file" }).click();
     await screen
-      .getByLabelText("CSV File")
+      .getByLabelText("File (Excel, CSV, OpenDocument…)")
       .upload(
         csvFile("companies.csv", [
           "name,city",

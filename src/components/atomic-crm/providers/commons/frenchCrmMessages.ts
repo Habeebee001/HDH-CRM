@@ -449,7 +449,7 @@ export const frenchCrmMessages = {
       upcoming_tasks: "Tâches à venir",
     },
     data_import: {
-      button: "Importer un fichier CSV",
+      button: "Importer un fichier",
       complete:
         "Import terminé. %{importCount} enregistrements importés, %{errorCount} erreurs",
       complete_with_errors:
@@ -457,10 +457,15 @@ export const frenchCrmMessages = {
       columns_hint:
         "Colonnes : %{columns}. Les noms courants comme %{examples} sont aussi reconnus.",
       excel_hint:
-        "Fichier Excel ? Dans Excel, choisissez Fichier → Enregistrer sous → CSV UTF-8. Dans Google Sheets, Fichier → Télécharger → CSV.",
+        "Tous les tableaux sont acceptés : Excel (.xlsx, .xls), CSV, OpenDocument (.ods), Numbers ou texte séparé par des tabulations. Depuis Google Sheets : Fichier → Télécharger → Microsoft Excel.",
       problem: {
+        empty: "Ce fichier est vide : il n'y a aucun tableau à importer.",
+        unreadable:
+          "Ce fichier n'a pas pu être lu. Vérifiez qu'il s'agit d'un fichier Excel, OpenDocument, Numbers ou CSV, puis réessayez.",
+        protected:
+          "Ce fichier est protégé par un mot de passe. Ouvrez-le, retirez le mot de passe (dans Excel : Fichier → Informations → Protéger le classeur), enregistrez-le et réessayez.",
         no_columns:
-          "Aucune colonne de ce fichier n'a été reconnue (trouvées : %{found}). La première ligne doit contenir les noms des colonnes, par exemple : %{expected}. Un fichier Excel doit d'abord être enregistré en CSV.",
+          "Aucune colonne de ce fichier n'a été reconnue (trouvées : %{found}). L'une des premières lignes doit contenir les noms des colonnes, par exemple : %{expected}.",
         no_contact_columns:
           "Ce fichier n'a pas de colonne pour le nom, l'e-mail ou le téléphone du contact (trouvées : %{found}). Ajoutez une colonne « Name », « Email » ou « Phone », ou téléchargez l'exemple.",
         no_company_name:
@@ -470,9 +475,9 @@ export const frenchCrmMessages = {
         looks_like_contacts:
           "Ce fichier ressemble à une liste de personnes (trouvées : %{found}). Pour importer des personnes, ouvrez Contacts et utilisez l'import.",
       },
-      csv_file: "Fichier CSV",
+      csv_file: "Fichier (Excel, CSV, OpenDocument…)",
       error:
-        "Échec de l'importation de ce fichier. Veuillez vous assurer que vous avez fourni un fichier CSV valide.",
+        "Ce fichier n'a pas pu être importé. Vérifiez qu'il s'agit d'un tableur (Excel, OpenDocument, Numbers) ou d'un fichier CSV.",
       in_progress: "Import en cours…",
       progress:
         "%{importCount} / %{rowCount} enregistrements importés, avec %{errorCount} erreurs.",

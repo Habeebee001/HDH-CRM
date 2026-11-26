@@ -327,6 +327,10 @@ export const createDataProvider = ({
 
       return { email_sent: true };
     },
+    // The demo has a single workspace: there are no members to choose
+    setWorkspaceMembers: async () => {
+      throw new Error("Workspaces are not available in the demo");
+    },
     globalSearch: async (
       query: string,
       resources: readonly SearchResourceName[],

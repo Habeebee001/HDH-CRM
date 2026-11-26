@@ -44,6 +44,30 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/workspaces/types.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/workspaces/currentWorkspace.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/workspaces/WorkspacesPage.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/workspaces/WorkspaceSwitcher.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/workspaces/WorkspaceGate.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/workspaces/WorkspaceContext.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/tasks/tasksPredicate.ts",
           "type": "registry:component"
         },
@@ -693,6 +717,10 @@
         },
         {
           "path": "src/components/atomic-crm/dataImport/types.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dataImport/readTableFile.ts",
           "type": "registry:component"
         },
         {

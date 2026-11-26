@@ -170,7 +170,7 @@ describe("ContactList", () => {
   it("imports contacts from a dialog with no resource to pick", async () => {
     const screen = await render(<DesktopEmpty />);
 
-    await screen.getByRole("button", { name: "Import CSV" }).click();
+    await screen.getByRole("button", { name: "Import file" }).click();
 
     await expect
       .element(screen.getByRole("heading", { name: "Import contacts" }))

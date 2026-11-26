@@ -440,7 +440,7 @@ const noColumns = (found: string, sampleHeaders: string[]): ImportProblem => ({
   messageArgs: {
     found,
     expected: sampleHeaders.join(", "),
-    _: `None of the columns of this file were recognised (found: ${found}). The first row must hold the column names, for example: ${sampleHeaders.join(", ")}. An Excel file must be saved as CSV first.`,
+    _: `None of the columns of this file were recognised (found: ${found}). One of the first rows must hold the column names, for example: ${sampleHeaders.join(", ")}.`,
   },
 });
 

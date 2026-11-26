@@ -11,6 +11,8 @@ WORKDIR /app
 # installing git hooks (there is no .git in the build context).
 ENV NODE_ENV=CI HUSKY=0
 COPY package.json package-lock.json .npmrc ./
+# SheetJS (spreadsheet import) is vendored: it is not published on npm
+COPY vendor ./vendor
 RUN npm ci --no-audit --no-fund
 COPY . .
 RUN npm run build

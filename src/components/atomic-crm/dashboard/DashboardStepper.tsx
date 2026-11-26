@@ -13,6 +13,7 @@ import { ContactCreateSheet } from "../contacts/ContactCreateSheet";
 import { DataImportButton } from "../dataImport/DataImportButton";
 import useAppBarHeight from "../misc/useAppBarHeight";
 import { NoteCreateSheet } from "../notes/NoteCreateSheet";
+import { useWorkspaces } from "../workspaces/WorkspaceContext";
 
 export const DashboardStepper = ({
   step,
@@ -22,6 +23,7 @@ export const DashboardStepper = ({
   contactId?: Identifier;
 }) => {
   const translate = useTranslate();
+  const { current: workspace, workspaces } = useWorkspaces();
   const createPath = useCreatePath();
   const appbarHeight = useAppBarHeight();
   const isMobile = useIsMobile();
@@ -72,9 +74,15 @@ export const DashboardStepper = ({
               <div className="flex gap-8 items-center">
                 <CheckCircle className="text-green-600 w-5 h-5 shrink-0" />
                 <h4 className="font-bold">
-                  {translate("crm.dashboard.stepper.install", {
-                    _: "Install HDH CRM",
-                  })}
+                  {/* A new workspace is set up, not installed */}
+                  {workspace && workspaces.length > 1
+                    ? translate("crm.workspaces.stepper_created", {
+                        name: workspace.name,
+                        _: `Create the workspace “${workspace.name}”`,
+                      })
+                    : translate("crm.dashboard.stepper.install", {
+                        _: "Install HDH CRM",
+                      })}
                 </h4>
               </div>
               <div className="flex gap-8 items-start">

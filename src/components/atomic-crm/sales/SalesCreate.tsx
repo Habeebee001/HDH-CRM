@@ -16,12 +16,14 @@ import type { SalesFormData } from "../types";
 import { getSalesErrorNotification } from "./salesErrorNotification";
 import { SalesInputs } from "./SalesInputs";
 import { setPendingInvite } from "./pendingInvite";
+import { useWorkspaces } from "../workspaces/WorkspaceContext";
 
 export function SalesCreate() {
   const dataProvider = useDataProvider<CrmDataProvider>();
   const notify = useNotify();
   const translate = useTranslate();
   const redirect = useRedirect();
+  const { current: workspace, workspaces } = useWorkspaces();
 
   const { mutate } = useMutation({
     mutationKey: ["signup"],
@@ -80,6 +82,14 @@ export function SalesCreate() {
             </CardTitle>
           </CardHeader>
           <CardContent>
+            {workspace && workspaces.length > 1 ? (
+              <p className="mb-4 rounded-md bg-muted px-3 py-2 text-sm text-muted-foreground">
+                {translate("resources.sales.create.workspace_hint", {
+                  name: workspace.name,
+                  _: `They will be able to open the workspace “${workspace.name}”. Give them access to other workspaces on the Workspaces page.`,
+                })}
+              </p>
+            ) : null}
             <SimpleForm onSubmit={onSubmit as SubmitHandler<any>}>
               <SalesInputs />
             </SimpleForm>
