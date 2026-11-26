@@ -50,9 +50,10 @@ git push -u origin main
    (the first build takes about 5 minutes).
 2. Open the service → **Variables** → add:
 
-   | Variable       | Value                                   |
-   | -------------- | --------------------------------------- |
-   | `DATABASE_URL` | the Neon connection string from step 1 |
+   | Variable       | Value                                                        |
+   | -------------- | ------------------------------------------------------------ |
+   | `DATABASE_URL` | the Neon connection string from step 1                      |
+   | `ADMIN_EMAIL`  | your email: only it can create the first (admin) account    |
 
 3. **Settings → Networking → Generate domain**. If Railway asks for a port,
    enter `8080`.
@@ -71,6 +72,7 @@ With [Node.js](https://nodejs.org) installed, from this folder:
 npm install -g @railway/cli
 railway up -y --name hdh-crm          # signs you in, creates the project, deploys
 railway variable set DATABASE_URL='postgresql://neondb_owner:…'   # your Neon string
+railway variable set ADMIN_EMAIL=you@yourcompany.com              # your email
 railway domain                        # prints your https://….up.railway.app address
 ```
 
@@ -80,7 +82,8 @@ Then set the healthcheck path and region in the dashboard as above. Run
 ## 4. First sign-in
 
 The first person to open the app creates the **administrator** account
-(sign-up is closed after that). Then go to **Users → New user** to add the
+(sign-up is closed after that). With `ADMIN_EMAIL` set, only that address
+can do it, so nobody can claim the app before you. Then go to **Users → New user** to add the
 team.
 
 - **Without email set up** (the default): after creating a user, the Users
@@ -120,6 +123,7 @@ add the CNAME record it shows at your DNS provider, then set
 | Variable             | Default | Purpose                                                   |
 | -------------------- | ------- | --------------------------------------------------------- |
 | `APP_NAME`           | HDH CRM | Name used in emails and link pages                       |
+| `ADMIN_EMAIL`        | (none)  | Only this address can create the first (admin) account; anyone can if unset |
 | `JWT_SECRET`         | auto    | Session signing key (32+ characters). Generated and stored in the database if unset. |
 | `JWT_EXPIRY`         | 3600    | Session token lifetime in seconds (refreshed automatically) |
 | `INVITE_TTL_HOURS`   | 168     | Invitation links validity (7 days)                       |

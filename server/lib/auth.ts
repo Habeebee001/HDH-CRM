@@ -400,6 +400,13 @@ const signup = async (req: Req, res: Res) => {
       // Like Atomic CRM: only the first user signs up; others are invited.
       throw new AuthError(422, "signup_disabled", "Signups not allowed for this instance");
     }
+    if (env.adminEmail && email !== env.adminEmail) {
+      throw new AuthError(
+        403,
+        "signup_disabled",
+        "This CRM is reserved for its owner: sign up with the owner's email address.",
+      );
+    }
     const user = (
       await db.query<DbUser>(
         `insert into auth.users (email, encrypted_password, raw_user_meta_data, email_confirmed_at)

@@ -30,6 +30,12 @@ export const env = {
   jwtSecret: process.env.JWT_SECRET || undefined,
   jwtExpirySeconds: number(process.env.JWT_EXPIRY, 3600),
 
+  /**
+   * Optional: only this address may create the first (administrator) account,
+   * so nobody else can claim a fresh deployment before its owner does.
+   */
+  adminEmail: (process.env.ADMIN_EMAIL ?? "").trim().toLowerCase(),
+
   /** Public URL used in emailed links. Falls back to the request's host. */
   appUrl: publicUrl().replace(/\/+$/, ""),
   appName: process.env.APP_NAME || "HDH CRM",
