@@ -124,7 +124,12 @@ const ProfileForm = ({
       }
       return dataProvider.updatePassword(identity.id);
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
+      if (result?.link) {
+        // No email server: open the password page directly.
+        window.location.assign(result.link);
+        return;
+      }
       notify("crm.profile.password_reset_sent", {
         messageArgs: {
           _: "A reset password email has been sent to your email address",
@@ -182,7 +187,7 @@ const ProfileForm = ({
       <Card>
         <CardContent>
           <div className="mb-4 flex flex-row justify-between">
-            <h2 className="text-xl font-semibold text-muted-foreground">
+            <h2 className="font-display text-2xl text-foreground">
               {translate("crm.profile.title")}
             </h2>
           </div>
@@ -241,12 +246,12 @@ const ProfileForm = ({
         <Card>
           <CardContent>
             <div className="space-y-4 justify-between">
-              <h2 className="text-xl font-semibold text-muted-foreground">
+              <h2 className="font-display text-2xl text-foreground">
                 {translate("crm.profile.inbound.title")}
               </h2>
               <p className="text-sm text-muted-foreground">
                 {translate("crm.profile.inbound.description", {
-                  _: "You can start sending emails to your server's inbound email address, e.g. by adding it to the Cc: field. Atomic CRM will process the emails and add notes to the corresponding contacts.",
+                  _: "You can start sending emails to your server's inbound email address, e.g. by adding it to the Cc: field. HDH CRM will process the emails and add notes to the corresponding contacts.",
                   field: "Cc:",
                 })}
               </p>
@@ -258,7 +263,7 @@ const ProfileForm = ({
       <Card>
         <CardContent>
           <div className="space-y-4 justify-between">
-            <h2 className="text-xl font-semibold text-muted-foreground">
+            <h2 className="font-display text-2xl text-foreground">
               {translate("crm.profile.mcp.title", {
                 _: "MCP Server",
               })}

@@ -13,6 +13,10 @@ export default defineConfig({
   server: {
     port: 5174,
     host: true,
+    // Allow the cloud preview proxy host (e.g. *.e2b.app) in addition to localhost
+    allowedHosts: true,
+    // Behind an HTTPS preview proxy, the HMR websocket must use port 443
+    hmr: process.env.PREVIEW_PROXY ? { clientPort: 443 } : undefined,
   },
   plugins: [
     react(),

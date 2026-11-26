@@ -7,6 +7,7 @@ import { TextInput } from "@/components/admin/text-input";
 import { Notification } from "@/components/admin/notification";
 import { useConfigurationContext } from "@/components/atomic-crm/root/ConfigurationContext.tsx";
 import { SSOAuthButton } from "./SSOAuthButton";
+import { BrandPanel } from "./BrandPanel";
 import {
   disableEmailPasswordAuthentication,
   googleWorkplaceDomain,
@@ -22,7 +23,7 @@ import {
  * @see {@link https://marmelab.com/shadcn-admin-kit/docs/security Security documentation}
  */
 export const LoginPage = (props: { redirectTo?: string }) => {
-  const { darkModeLogo, title } = useConfigurationContext();
+  const { darkModeLogo, lightModeLogo, title } = useConfigurationContext();
   const { redirectTo } = props;
   const [loading, setLoading] = useState(false);
   const hasDisplayedRecoveryNotification = useRef(false);
@@ -89,24 +90,39 @@ export const LoginPage = (props: { redirectTo?: string }) => {
   };
 
   return (
-    <div className="min-h-screen flex">
-      <div className="relative grid w-full lg:grid-cols-2">
-        <div className="relative hidden h-full flex-col bg-muted p-10 text-white dark:border-r lg:flex">
-          <div className="absolute inset-0 bg-zinc-900" />
-          <div className="relative z-20 flex items-center text-lg font-medium">
-            <img className="h-6 mr-2" src={darkModeLogo} alt={title} />
-            {title}
-          </div>
-        </div>
-        <div className="flex flex-col justify-center w-full p-4 lg:p-8">
-          <div className="w-full space-y-6 lg:mx-auto lg:w-[350px]">
-            <div className="text-center">
-              <h1 className="text-2xl font-semibold tracking-tight">
+    <div className="min-h-screen flex bg-background">
+      <div className="relative grid w-full lg:grid-cols-[1.05fr_1fr]">
+        <BrandPanel />
+        <div className="flex flex-col justify-center w-full px-6 py-12 lg:px-12">
+          <div className="w-full space-y-8 sm:mx-auto sm:w-[380px]">
+            <div className="flex justify-center lg:hidden">
+              <img
+                className="h-20 w-auto dark:hidden"
+                src={lightModeLogo}
+                alt={title}
+              />
+              <img
+                className="h-20 w-auto hidden dark:block"
+                src={darkModeLogo}
+                alt={title}
+              />
+            </div>
+            <div className="space-y-3 text-center lg:text-left">
+              <p className="eyebrow">
+                {translate("crm.auth.welcome_back", { _: "Welcome back" })}
+              </p>
+              <h1 className="font-display text-4xl leading-tight">
                 {translate("ra.auth.sign_in")}
               </h1>
+              <p className="text-sm text-muted-foreground">
+                {translate("crm.auth.sign_in_subtitle", {
+                  _: "Sign in to continue to %{title}.",
+                  title,
+                })}
+              </p>
             </div>
             {disableEmailPasswordAuthentication ? null : (
-              <Form className="space-y-8" onSubmit={handleSubmit}>
+              <Form className="space-y-6" onSubmit={handleSubmit}>
                 <TextInput
                   label="ra.auth.email"
                   source="email"
@@ -119,10 +135,11 @@ export const LoginPage = (props: { redirectTo?: string }) => {
                   type="password"
                   validate={required()}
                 />
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-4 pt-2">
                   <Button
                     type="submit"
-                    className="cursor-pointer"
+                    size="lg"
+                    className="cursor-pointer h-11 tracking-wide"
                     disabled={loading}
                   >
                     {translate("ra.auth.sign_in")}
@@ -140,7 +157,7 @@ export const LoginPage = (props: { redirectTo?: string }) => {
             {disableEmailPasswordAuthentication ? null : (
               <Link
                 to={"/forgot-password"}
-                className="block text-sm text-center hover:underline"
+                className="block text-sm text-center text-muted-foreground hover:text-foreground hover:underline underline-offset-4"
               >
                 {translate("ra-supabase.auth.forgot_password", {
                   _: "Forgot password?",

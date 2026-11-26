@@ -17,7 +17,7 @@ export const SettingsTags = () => {
   return (
     <Card id="tags">
       <CardContent className="space-y-4">
-        <h2 className="text-xl font-semibold text-muted-foreground">
+        <h2 className="font-display text-2xl text-foreground">
           {translate("resources.tags.name", { smart_count: 2 })}
         </h2>
         {tags?.length === 0 && (

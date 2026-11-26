@@ -6,7 +6,7 @@
       name="viewport"
       content="minimum-scale=1, initial-scale=1, width=device-width"
     />
-    <meta name="theme-color" content="#000000" />
+    <meta name="theme-color" content="#111114" />
     <meta name="google" content="notranslate" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -28,7 +28,11 @@
     <link rel="apple-touch-icon" sizes="180x180" href="./appIcon/180.png" />
     <link rel="apple-touch-icon" sizes="192x192" href="./appIcon/192.png" />
     <link rel="apple-touch-icon" sizes="1024x1024" href="./appIcon/1024.png" />
-    <title>Atomic CRM</title>
+    <title>HDH CRM</title>
+    <meta
+      name="description"
+      content="HDH CRM: clients, deals and follow-ups in one refined workspace."
+    />
     <!-- Deployment settings, rendered by scripts/renderRuntimeConfig.ts -->
     <script vite-ignore src="./config.js"></script>
 
@@ -48,92 +52,64 @@
         touch-action: manipulation;
       }
 
+      /* HDH splash screen, shown until React mounts */
       .loader-container {
         display: flex;
         align-items: center;
         justify-content: center;
         flex-direction: column;
+        gap: 28px;
         position: absolute;
-        top: 0;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background-color: #fafafa;
+        inset: 0;
+        background-color: #f7f5f0;
       }
-
-      /* CSS Spinner from https://projects.lukehaas.me/css-loaders/ */
-
-      .loader,
-      .loader:before,
-      .loader:after {
-        border-radius: 50%;
+      .loader-logo {
+        height: 96px;
+        width: auto;
+        animation: hdh-breathe 2.4s ease-in-out infinite;
       }
-
-      .loader {
-        color: #283593;
-        font-size: 11px;
-        text-indent: -99999em;
-        margin: 55px auto;
+      .loader-bar {
         position: relative;
-        width: 10em;
-        height: 10em;
-        box-shadow: inset 0 0 0 1em;
-        -webkit-transform: translateZ(0);
-        -ms-transform: translateZ(0);
-        transform: translateZ(0);
+        width: 120px;
+        height: 2px;
+        overflow: hidden;
+        border-radius: 2px;
+        background: rgba(198, 161, 91, 0.2);
       }
-
-      .loader:before,
-      .loader:after {
-        position: absolute;
+      .loader-bar::after {
         content: "";
+        position: absolute;
+        inset: 0;
+        width: 40%;
+        border-radius: 2px;
+        background: #c6a15b;
+        animation: hdh-slide 1.3s ease-in-out infinite;
       }
-
-      .loader:before {
-        width: 5.2em;
-        height: 10.2em;
-        background: #fafafa;
-        border-radius: 10.2em 0 0 10.2em;
-        top: -0.1em;
-        left: -0.1em;
-        -webkit-transform-origin: 5.2em 5.1em;
-        transform-origin: 5.2em 5.1em;
-        -webkit-animation: load2 2s infinite ease 1.5s;
-        animation: load2 2s infinite ease 1.5s;
+      @media (prefers-color-scheme: dark) {
+        .loader-container {
+          background-color: #0e0e10;
+        }
+        .loader-logo {
+          filter: invert(1);
+        }
       }
-
-      .loader:after {
-        width: 5.2em;
-        height: 10.2em;
-        background: #fafafa;
-        border-radius: 0 10.2em 10.2em 0;
-        top: -0.1em;
-        left: 5.1em;
-        -webkit-transform-origin: 0px 5.1em;
-        transform-origin: 0px 5.1em;
-        -webkit-animation: load2 2s infinite ease;
-        animation: load2 2s infinite ease;
+      @keyframes hdh-breathe {
+        0%,
+        100% {
+          opacity: 0.55;
+          transform: scale(0.98);
+        }
+        50% {
+          opacity: 1;
+          transform: scale(1);
+        }
       }
-
-      @-webkit-keyframes load2 {
+      @keyframes hdh-slide {
         0% {
-          -webkit-transform: rotate(0deg);
-          transform: rotate(0deg);
+          transform: translateX(-100%);
         }
         100% {
-          -webkit-transform: rotate(360deg);
-          transform: rotate(360deg);
-        }
-      }
-
-      @keyframes load2 {
-        0% {
-          -webkit-transform: rotate(0deg);
-          transform: rotate(0deg);
-        }
-        100% {
-          -webkit-transform: rotate(360deg);
-          transform: rotate(360deg);
+          transform: translateX(250%);
         }
       }
     </style>
@@ -141,7 +117,8 @@
   <body>
     <div id="root">
       <div class="loader-container">
-        <div class="loader">Loading...</div>
+        <img class="loader-logo" src="./logos/hdh_logo.svg" alt="HDH" />
+        <div class="loader-bar" role="progressbar" aria-label="Loading"></div>
       </div>
     </div>
     <noscript>You need to enable JavaScript to run this app.</noscript>

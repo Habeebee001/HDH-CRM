@@ -13,6 +13,8 @@ export interface RuntimeConfig {
   attachmentsBucket?: string;
   googleWorkplaceDomain?: string;
   disableEmailPasswordAuthentication?: boolean;
+  /** Whether the server can send emails (invitations, password resets). */
+  emailEnabled?: boolean;
 }
 
 declare global {

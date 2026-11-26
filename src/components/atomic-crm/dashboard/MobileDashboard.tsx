@@ -9,24 +9,27 @@ import MobileHeader from "../layout/MobileHeader";
 import { MobileContent } from "../layout/MobileContent";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { config } from "../root/config";
+import { splitBrandTitle } from "../misc/brand";
 
 const Wrapper = ({ children }: { children: React.ReactNode }) => {
-  const { darkModeLogo, lightModeLogo, title } = useConfigurationContext();
+  const { darkModeLogo, title } = useConfigurationContext();
+  const { brand, suffix } = splitBrandTitle(title);
   return (
     <>
       <MobileHeader>
-        <div className="flex items-center gap-2 text-secondary-foreground no-underline py-3">
-          <img
-            className="[.light_&]:hidden h-6"
-            src={darkModeLogo}
-            alt={title}
-          />
-          <img
-            className="[.dark_&]:hidden h-6"
-            src={lightModeLogo}
-            alt={title}
-          />
-          <h1 className="text-xl font-semibold">{title}</h1>
+        {/* The mobile header is always ink-dark, so use the light logo. */}
+        <div className="flex items-center gap-2.5 text-foreground no-underline py-3">
+          <img className="h-8 w-auto" src={darkModeLogo} alt={title} />
+          <h1 className="flex items-baseline gap-2 leading-none">
+            <span className="font-display text-xl tracking-[0.04em]">
+              {brand}
+            </span>
+            {suffix ? (
+              <span className="eyebrow text-[0.55rem] tracking-[0.4em]">
+                {suffix}
+              </span>
+            ) : null}
+          </h1>
         </div>
       </MobileHeader>
       <MobileContent>{children}</MobileContent>

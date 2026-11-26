@@ -1,20 +1,33 @@
-import { FileText, Import, Settings, User, Users } from "lucide-react";
+import {
+  Building2,
+  FileText,
+  Handshake,
+  Import,
+  LayoutDashboard,
+  type LucideIcon,
+  Settings,
+  User,
+  Users,
+} from "lucide-react";
 import { CanAccess, useTranslate, useUserMenu } from "ra-core";
 import { Link, matchPath, useLocation } from "react-router";
 import { RefreshButton } from "@/components/admin/refresh-button";
 import { ThemeModeToggle } from "@/components/admin/theme-mode-toggle";
 import { UserMenu } from "@/components/admin/user-menu";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { ImportPage } from "../misc/ImportPage";
 import { ChangelogPage } from "../misc/ChangelogPage";
 import { GlobalSearchButton } from "../search/GlobalSearchButton";
+import { splitBrandTitle } from "../misc/brand";
 
 const Header = () => {
-  const { darkModeLogo, lightModeLogo, title } = useConfigurationContext();
+  const { darkModeLogo, title } = useConfigurationContext();
   const location = useLocation();
   const translate = useTranslate();
+  const { brand, suffix } = splitBrandTitle(title);
 
   let currentPath: string | boolean = "/";
   if (matchPath("/", location.pathname)) {
@@ -30,99 +43,122 @@ const Header = () => {
   }
 
   return (
-    <>
-      <nav className="grow">
-        <header className="bg-secondary">
-          <div className="px-4">
-            <div className="flex justify-between items-center flex-1">
-              <Link
+    <nav className="grow sticky top-0 z-40">
+      {/* The app bar is always ink-dark: the `dark` class scopes the dark
+          palette to it, so buttons and menus inside it adapt automatically. */}
+      <header className="dark bg-header text-foreground border-b border-white/[0.06] shadow-[0_8px_24px_-16px_rgba(0,0,0,0.6)]">
+        <div className="max-w-screen-xl mx-auto px-6">
+          <div className="flex h-16 items-center justify-between gap-6">
+            <Link
+              to="/"
+              className="flex items-center gap-3 text-foreground no-underline"
+            >
+              <img
+                className="h-9 w-auto"
+                src={darkModeLogo}
+                alt=""
+                aria-hidden
+              />
+              <span className="flex flex-col leading-none">
+                <span className="font-display text-[1.4rem] tracking-[0.04em]">
+                  {brand}
+                </span>
+                {suffix ? (
+                  <span className="eyebrow mt-1 text-[0.58rem] tracking-[0.42em]">
+                    {suffix}
+                  </span>
+                ) : null}
+              </span>
+            </Link>
+            <nav className="flex h-full items-stretch">
+              <NavigationTab
+                label={translate("ra.page.dashboard")}
                 to="/"
-                className="flex items-center gap-2 text-secondary-foreground no-underline"
-              >
-                <img
-                  className="[.light_&]:hidden h-6"
-                  src={darkModeLogo}
-                  alt={title}
-                />
-                <img
-                  className="[.dark_&]:hidden h-6"
-                  src={lightModeLogo}
-                  alt={title}
-                />
-                <h1 className="text-xl font-semibold">{title}</h1>
-              </Link>
-              <div>
-                <nav className="flex">
-                  <NavigationTab
-                    label={translate("ra.page.dashboard")}
-                    to="/"
-                    isActive={currentPath === "/"}
-                  />
-                  <NavigationTab
-                    label={translate("resources.contacts.name", {
-                      smart_count: 2,
-                    })}
-                    to="/contacts"
-                    isActive={currentPath === "/contacts"}
-                  />
-                  <NavigationTab
-                    label={translate("resources.companies.name", {
-                      smart_count: 2,
-                    })}
-                    to="/companies"
-                    isActive={currentPath === "/companies"}
-                  />
-                  <NavigationTab
-                    label={translate("resources.deals.name", {
-                      smart_count: 2,
-                    })}
-                    to="/deals"
-                    isActive={currentPath === "/deals"}
-                  />
-                </nav>
-              </div>
-              <div className="flex items-center">
-                <GlobalSearchButton />
-                <ThemeModeToggle />
-                <RefreshButton />
-                <UserMenu>
-                  <ProfileMenu />
-                  <CanAccess resource="sales" action="list">
-                    <UsersMenu />
-                  </CanAccess>
-                  <CanAccess resource="configuration" action="edit">
-                    <SettingsMenu />
-                  </CanAccess>
-                  <ImportFromJsonMenuItem />
-                  <ChangelogMenuItem />
-                </UserMenu>
-              </div>
+                icon={LayoutDashboard}
+                isActive={currentPath === "/"}
+              />
+              <NavigationTab
+                label={translate("resources.contacts.name", {
+                  smart_count: 2,
+                })}
+                to="/contacts"
+                icon={Users}
+                isActive={currentPath === "/contacts"}
+              />
+              <NavigationTab
+                label={translate("resources.companies.name", {
+                  smart_count: 2,
+                })}
+                to="/companies"
+                icon={Building2}
+                isActive={currentPath === "/companies"}
+              />
+              <NavigationTab
+                label={translate("resources.deals.name", {
+                  smart_count: 2,
+                })}
+                to="/deals"
+                icon={Handshake}
+                isActive={currentPath === "/deals"}
+              />
+            </nav>
+            <div className="flex items-center gap-1 text-foreground/80">
+              <GlobalSearchButton />
+              <ThemeModeToggle />
+              <RefreshButton />
+              <UserMenu>
+                <ProfileMenu />
+                <CanAccess resource="sales" action="list">
+                  <UsersMenu />
+                </CanAccess>
+                <CanAccess resource="configuration" action="edit">
+                  <SettingsMenu />
+                </CanAccess>
+                <ImportFromJsonMenuItem />
+                <ChangelogMenuItem />
+              </UserMenu>
             </div>
           </div>
-        </header>
-      </nav>
-    </>
+        </div>
+      </header>
+    </nav>
   );
 };
 
 const NavigationTab = ({
   label,
   to,
+  icon: Icon,
   isActive,
 }: {
   label: string;
   to: string;
+  icon: LucideIcon;
   isActive: boolean;
 }) => (
   <Link
     to={to}
-    className={`px-6 py-3 text-sm font-medium transition-colors border-b-2 ${
-      isActive
-        ? "text-secondary-foreground border-secondary-foreground"
-        : "text-secondary-foreground/70 border-transparent hover:text-secondary-foreground/80"
-    }`}
+    aria-current={isActive ? "page" : undefined}
+    className={cn(
+      "group relative flex items-center gap-2 px-4 text-sm font-medium tracking-wide transition-colors",
+      isActive ? "text-foreground" : "text-foreground/55 hover:text-foreground",
+    )}
   >
+    <Icon
+      className={cn(
+        "size-4 transition-colors",
+        isActive ? "text-brand" : "text-current",
+      )}
+    />
     {label}
+    <span
+      className={cn(
+        "absolute inset-x-3 bottom-0 h-[2px] rounded-full bg-brand transition-all duration-300",
+        isActive
+          ? "opacity-100 scale-x-100"
+          : "opacity-0 scale-x-50 group-hover:opacity-40 group-hover:scale-x-75",
+      )}
+    />
   </Link>
 );
 

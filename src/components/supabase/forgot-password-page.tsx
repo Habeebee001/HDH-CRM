@@ -5,6 +5,7 @@ import { Layout } from "@/components/supabase/layout";
 import type { FieldValues, SubmitHandler } from "react-hook-form";
 import { TextInput } from "@/components/admin/text-input";
 import { Button } from "@/components/ui/button";
+import { config } from "@/components/atomic-crm/root/config";
 
 interface FormData {
   email: string;
@@ -66,6 +67,13 @@ export const ForgotPasswordPage = () => {
             _: "Enter your email to receive a reset password link.",
           })}
         </p>
+        {config.emailEnabled === false ? (
+          <p className="text-sm text-muted-foreground">
+            {translate("crm.auth.no_email_reset", {
+              _: "No email arriving? Ask your administrator for a password link (Users page).",
+            })}
+          </p>
+        ) : null}
       </div>
       <Form<FormData>
         className="space-y-8"

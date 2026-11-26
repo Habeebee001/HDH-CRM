@@ -121,6 +121,8 @@ const getDataProviderWithCustomMethods = () => {
     async salesCreate(body: SalesFormData) {
       const { data, error } = await getSupabaseClient().functions.invoke<{
         data: Sale;
+        invite_link?: string;
+        email_sent?: boolean;
       }>("users", {
         method: "POST",
         body,
@@ -141,7 +143,13 @@ const getDataProviderWithCustomMethods = () => {
         );
       }
 
-      return data.data;
+      // The HDH CRM server returns the invitation link, to share it when
+      // email is not configured.
+      return {
+        ...data.data,
+        invite_link: data.invite_link,
+        email_sent: data.email_sent,
+      };
     },
     async salesUpdate(
       id: Identifier,
@@ -193,21 +201,42 @@ const getDataProviderWithCustomMethods = () => {
 
       return updatedData.data;
     },
-    async updatePassword(id: Identifier) {
+    async updatePassword(id: Identifier): Promise<PasswordLinkResult> {
       const { data: passwordUpdated, error } =
-        await getSupabaseClient().functions.invoke<boolean>("update_password", {
+        await getSupabaseClient().functions.invoke<{
+          data: PasswordLinkResult;
+        }>("update_password", {
           method: "PATCH",
           body: {
             sales_id: id,
           },
         });
 
-      if (!passwordUpdated || error) {
+      if (!passwordUpdated?.data || error) {
         console.error("update_password.error", error);
         throw new Error("Failed to update password");
       }
 
-      return passwordUpdated;
+      // Without email, the server returns the link to open right away.
+      return passwordUpdated.data;
+    },
+    async salesPasswordLink(
+      id: Identifier,
+      sendEmail: boolean,
+    ): Promise<PasswordLinkResult> {
+      const { data, error } = await getSupabaseClient().functions.invoke<{
+        data: PasswordLinkResult;
+      }>("password_link", {
+        method: "POST",
+        body: { sales_id: id, send_email: sendEmail },
+      });
+
+      if (!data?.data?.link || error) {
+        console.error("password_link.error", error);
+        throw new Error("Failed to create the password link");
+      }
+
+      return data.data;
     },
     async unarchiveDeal(deal: Deal) {
       // get all deals where stage is the same as the deal to unarchive
@@ -286,6 +315,13 @@ const getDataProviderWithCustomMethods = () => {
       return data.config as ConfigurationContextValue;
     },
   } satisfies DataProvider;
+};
+
+/** A one-time link to choose a password (invitation or reset). */
+export type PasswordLinkResult = {
+  email_sent: boolean;
+  link?: string;
+  type?: "invite" | "recovery";
 };
 
 export type CrmDataProvider = ReturnType<

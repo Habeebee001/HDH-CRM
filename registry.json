@@ -184,7 +184,15 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/sales/pendingInvite.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/sales/index.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/sales/ShareLinkDialog.tsx",
           "type": "registry:component"
         },
         {
@@ -468,6 +476,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/misc/brand.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/misc/Status.tsx",
           "type": "registry:component"
         },
@@ -553,6 +565,10 @@
         },
         {
           "path": "src/components/atomic-crm/login/ConfirmationRequired.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/login/BrandPanel.tsx",
           "type": "registry:component"
         },
         {
@@ -737,6 +753,10 @@
         },
         {
           "path": "src/components/atomic-crm/dashboard/DashboardStepper.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dashboard/DashboardHeader.tsx",
           "type": "registry:component"
         },
         {

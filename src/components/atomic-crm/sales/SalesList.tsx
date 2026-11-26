@@ -7,6 +7,7 @@ import { SearchInput } from "@/components/admin/search-input";
 import { Badge } from "@/components/ui/badge";
 
 import { TopToolbar } from "../layout/TopToolbar";
+import { PendingInvitePanel } from "./ShareLinkDialog";
 
 const SalesListActions = () => (
   <TopToolbar>
@@ -50,6 +51,7 @@ export function SalesList() {
       actions={<SalesListActions />}
       sort={{ field: "first_name", order: "ASC" }}
     >
+      <PendingInvitePanel />
       <DataTable bulkActionButtons={false}>
         <DataTable.Col source="first_name" />
         <DataTable.Col source="last_name" />

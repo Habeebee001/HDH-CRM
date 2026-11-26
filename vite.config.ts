@@ -36,6 +36,12 @@ export default defineConfig({
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MiB
         // config.js is rewritten at deploy time: a precached copy would go stale.
         globIgnores: ["**/node_modules/**/*", "config.js"],
+        // The HDH CRM server answers these on the app's own origin (invitation
+        // and password links, file downloads): never replace them with the app.
+        navigateFallbackDenylist: [
+          /^\/(auth|rest|storage|functions)\/v1\//,
+          /^\/healthz$/,
+        ],
         // It blocks the app's startup: on a stalled network, fall back to the
         // cached copy instead of waiting for the request to fail.
         runtimeCaching: [

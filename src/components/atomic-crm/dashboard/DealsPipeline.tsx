@@ -1,4 +1,4 @@
-import { DollarSign } from "lucide-react";
+import { Banknote } from "lucide-react";
 import { useGetIdentity, useGetList, useTranslate } from "ra-core";
 import { Link } from "react-router";
 import { ReferenceField } from "@/components/admin/reference-field";
@@ -48,10 +48,10 @@ export const DealsPipeline = () => {
     <>
       <div className="flex items-center mb-4">
         <div className="ml-8 mr-8 flex">
-          <DollarSign className="text-muted-foreground w-6 h-6" />
+          <Banknote className="text-brand w-5 h-5" />
         </div>
         <Link
-          className="text-xl font-semibold text-muted-foreground hover:underline"
+          className="font-display text-2xl text-foreground hover:underline"
           to="/deals"
         >
           {translate("crm.dashboard.deals_pipeline")}

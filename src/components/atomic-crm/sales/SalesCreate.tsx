@@ -15,6 +15,7 @@ import type { CrmDataProvider } from "../providers/types";
 import type { SalesFormData } from "../types";
 import { getSalesErrorNotification } from "./salesErrorNotification";
 import { SalesInputs } from "./SalesInputs";
+import { setPendingInvite } from "./pendingInvite";
 
 export function SalesCreate() {
   const dataProvider = useDataProvider<CrmDataProvider>();
@@ -27,12 +28,25 @@ export function SalesCreate() {
     mutationFn: async (data: SalesFormData) => {
       return dataProvider.salesCreate(data);
     },
-    onSuccess: () => {
-      notify("resources.sales.create.success", {
-        messageArgs: {
-          _: "User created. They will soon receive an email to set their password.",
-        },
-      });
+    onSuccess: (sale) => {
+      if (sale?.invite_link && !sale.email_sent) {
+        // No email server: the Users list shows the link to share instead.
+        setPendingInvite({
+          link: sale.invite_link,
+          name: `${sale.first_name} ${sale.last_name}`.trim(),
+        });
+        notify("resources.sales.create.success_link", {
+          messageArgs: {
+            _: "User created. Share their invitation link so they can set their password.",
+          },
+        });
+      } else {
+        notify("resources.sales.create.success", {
+          messageArgs: {
+            _: "User created. They will soon receive an email to set their password.",
+          },
+        });
+      }
       redirect("/sales");
     },
     onError: (error) => {

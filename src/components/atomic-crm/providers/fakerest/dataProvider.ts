@@ -28,7 +28,7 @@ import { getCompanyAvatar } from "../commons/getCompanyAvatar";
 import { getContactAvatar } from "../commons/getContactAvatar";
 import { mergeContacts } from "../commons/mergeContacts";
 import { getSearchResults } from "./search";
-import type { CrmDataProvider } from "../types";
+import type { CrmDataProvider, PasswordLinkResult } from "../types";
 import {
   authProvider as defaultAuthProvider,
   USER_STORAGE_KEY,
@@ -291,7 +291,15 @@ export const createDataProvider = ({
       }
       return true;
     },
-    updatePassword: async (id: Identifier): Promise<true> => {
+    salesPasswordLink: async (): Promise<PasswordLinkResult> => {
+      // The demo has no server: show what the link would look like.
+      return {
+        email_sent: false,
+        type: "recovery",
+        link: `${window.location.origin}/auth/v1/verify?token=demo&type=recovery`,
+      };
+    },
+    updatePassword: async (id: Identifier): Promise<PasswordLinkResult> => {
       const currentUser = await getIdentity();
       if (!currentUser) {
         throw new Error("User not found");
@@ -312,7 +320,7 @@ export const createDataProvider = ({
         previousData,
       });
 
-      return true;
+      return { email_sent: true };
     },
     globalSearch: async (
       query: string,

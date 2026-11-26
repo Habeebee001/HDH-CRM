@@ -15,6 +15,7 @@ import { Notification } from "@/components/admin/notification";
 import { ConfirmationRequired } from "./ConfirmationRequired";
 import { SSOAuthButton } from "./SSOAuthButton";
 import { googleWorkplaceDomain } from "./authConfig";
+import { BrandPanel } from "./BrandPanel";
 
 export const SignupPage = () => {
   const queryClient = useQueryClient();
@@ -96,24 +97,24 @@ export const SignupPage = () => {
   };
 
   return (
-    <div className="h-screen p-8">
-      <div className="flex items-center gap-4">
-        <img
-          src={logo}
-          alt={title}
-          width={24}
-          className="filter brightness-0 dark:invert"
-        />
-        <h1 className="text-xl font-semibold">{title}</h1>
-      </div>
-      <div className="h-full">
-        <div className="max-w-sm mx-auto h-full flex flex-col justify-center gap-4">
-          <h1 className="text-2xl font-bold mb-4">
+    <div className="min-h-screen flex bg-background">
+      <div className="relative grid w-full lg:grid-cols-[1.05fr_1fr]">
+        <BrandPanel />
+        <div className="max-w-sm w-full mx-auto flex flex-col justify-center gap-4 px-6 py-12">
+          <img
+            src={logo}
+            alt={title}
+            className="h-16 w-auto self-center mb-2 lg:hidden filter brightness-0 dark:invert"
+          />
+          <p className="eyebrow">
+            {translate("crm.auth.signup.eyebrow", { _: "First-time setup" })}
+          </p>
+          <h1 className="font-display text-3xl leading-tight mb-2">
             {translate("crm.auth.welcome_title", {
-              _: "Welcome to Atomic CRM",
+              _: "Welcome to HDH CRM",
             })}
           </h1>
-          <p className="text-base mb-4">
+          <p className="text-sm text-muted-foreground mb-4">
             {translate("crm.auth.signup.create_first_user", {
               _: "Create the first user account to complete the setup.",
             })}

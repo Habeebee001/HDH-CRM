@@ -1,3 +1,19 @@
+# HDH CRM
+
+HDH's customer relationship manager: contacts, companies, deals pipeline,
+tasks, notes and activity history, in the HDH *Ink & Champagne* design.
+
+- **Runs on** Railway (one service) + Neon (Postgres). See **[DEPLOY.md](DEPLOY.md)**.
+- **Try the design without a backend**: `npm install && npm run dev:demo`.
+- **Brand guide**: [branding/README.md](branding/README.md). **Server**: [server/README.md](server/README.md).
+
+HDH CRM is built on [Atomic CRM](https://github.com/marmelab/atomic-crm) by
+Marmelab (MIT license, see [LICENSE.md](LICENSE.md)). Its original
+documentation follows. The Supabase setup it describes is replaced here by
+`server/` + Neon.
+
+---
+
 # Atomic CRM
 
 A full-featured CRM built with React, shadcn-admin-kit, and Supabase.

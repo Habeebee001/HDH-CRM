@@ -274,7 +274,7 @@ const SettingsFormFields = () => {
         {/* Branding */}
         <Card id="branding">
           <CardContent className="space-y-4">
-            <h2 className="text-xl font-semibold text-muted-foreground">
+            <h2 className="font-display text-2xl text-foreground">
               {translate("crm.settings.sections.branding")}
             </h2>
             <TextInput source="title" label="crm.settings.app_title" />
@@ -310,7 +310,7 @@ const SettingsFormFields = () => {
         {/* Companies */}
         <Card id="companies">
           <CardContent className="space-y-4">
-            <h2 className="text-xl font-semibold text-muted-foreground">
+            <h2 className="font-display text-2xl text-foreground">
               {translate("resources.companies.name", {
                 smart_count: 2,
               })}
@@ -333,7 +333,7 @@ const SettingsFormFields = () => {
         {/* Deals */}
         <Card id="deals">
           <CardContent className="space-y-4">
-            <h2 className="text-xl font-semibold text-muted-foreground">
+            <h2 className="font-display text-2xl text-foreground">
               {translate("resources.deals.name", {
                 smart_count: 2,
               })}
@@ -427,7 +427,7 @@ const SettingsFormFields = () => {
         {/* Notes */}
         <Card id="notes">
           <CardContent className="space-y-4">
-            <h2 className="text-xl font-semibold text-muted-foreground">
+            <h2 className="font-display text-2xl text-foreground">
               {translate("resources.notes.name", {
                 smart_count: 2,
               })}
@@ -447,7 +447,7 @@ const SettingsFormFields = () => {
         {/* Tasks */}
         <Card id="tasks">
           <CardContent className="space-y-4">
-            <h2 className="text-xl font-semibold text-muted-foreground">
+            <h2 className="font-display text-2xl text-foreground">
               {translate("resources.tasks.name", {
                 smart_count: 2,
               })}

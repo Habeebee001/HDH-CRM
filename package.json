@@ -24,12 +24,18 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "prepare": "husky",
-    "update-changelog": "gh api 'repos/{owner}/{repo}/releases' --paginate -q '.[] | \"## \\(.tag_name) - \\(.published_at[:10])\\n\\n\\(.body)\\n\"' > CHANGELOG.md"
+    "update-changelog": "gh api 'repos/{owner}/{repo}/releases' --paginate -q '.[] | \"## \\(.tag_name) - \\(.published_at[:10])\\n\\n\\(.body)\\n\"' > CHANGELOG.md",
+    "server": "node server/index.ts",
+    "server:install": "npm --prefix server ci",
+    "server:migrate": "node server/db/migrate.ts",
+    "typecheck:server": "tsc -p server/tsconfig.json"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
     "@fontsource-variable/inter": "^5.2.8",
+    "@fontsource-variable/playfair-display": "^5.3.0",
     "@hello-pangea/dnd": "^18.0.1",
+    "@marmelab/query-string": "^7.1.4",
     "@nivo/bar": "^0.99.0",
     "@streamparser/json-whatwg": "^0.0.22",
     "@supabase/supabase-js": "^2.90.1",
@@ -56,7 +62,6 @@
     "next-themes": "^0.4.6",
     "papaparse": "^5.5.3",
     "qs": "^6.16.1",
-    "@marmelab/query-string": "^7.1.4",
     "ra-core": "^5.15.6",
     "ra-data-fakerest": "^5.15.6",
     "ra-i18n-polyglot": "^5.15.6",

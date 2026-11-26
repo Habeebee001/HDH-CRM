@@ -92,9 +92,9 @@ export const DealsChart = memo(() => {
     <div className="flex flex-col">
       <div className="flex items-center mb-4">
         <div className="mr-3 flex">
-          <TrendingUp className="text-muted-foreground w-6 h-6" />
+          <TrendingUp className="text-brand w-5 h-5" />
         </div>
-        <h2 className="text-xl font-semibold text-muted-foreground">
+        <h2 className="font-display text-2xl text-foreground">
           {translate("crm.dashboard.deals_chart")}
         </h2>
       </div>
@@ -103,7 +103,7 @@ export const DealsChart = memo(() => {
           data={months}
           indexBy="date"
           keys={["won", "pending", "lost"]}
-          colors={["#61cdbb", "#97e3d5", "#e25c3b"]}
+          colors={["#C6A15B", "#E6D8B5", "#A4453F"]}
           margin={{ top: 30, right: 50, bottom: 30, left: 0 }}
           padding={0.3}
           valueScale={{
@@ -116,11 +116,13 @@ export const DealsChart = memo(() => {
           enableGridY={false}
           enableLabel={false}
           tooltip={({ value, indexValue }) => (
-            <div className="p-2 bg-secondary rounded shadow inline-flex items-center gap-1 text-secondary-foreground">
+            <div className="px-3 py-2 bg-popover text-popover-foreground rounded-md shadow-lg ring-1 ring-foreground/10 inline-flex items-center gap-1 text-sm">
               <strong>{indexValue}: </strong>&nbsp;{value > 0 ? "+" : ""}
               {value.toLocaleString(acceptedLanguages.at(0) ?? DEFAULT_LOCALE, {
                 style: "currency",
                 currency,
+                currencyDisplay: "narrowSymbol",
+                maximumFractionDigits: 0,
               })}
             </div>
           )}
@@ -181,7 +183,11 @@ export const DealsChart = memo(() => {
                 axis: "y",
                 value: 0,
                 lineStyle: { strokeOpacity: 0 },
-                textStyle: { fill: "#2ebca6" },
+                textStyle: {
+                  fill: "#B08D49",
+                  fontWeight: 600,
+                  letterSpacing: "0.08em",
+                },
                 legend: wonLabel,
                 legendPosition: "top-left",
                 legendOrientation: "vertical",
@@ -190,10 +196,15 @@ export const DealsChart = memo(() => {
                 axis: "y",
                 value: 0,
                 lineStyle: {
-                  stroke: "#f47560",
+                  stroke:
+                    "color-mix(in oklch, var(--color-foreground) 25%, transparent)",
                   strokeWidth: 1,
                 },
-                textStyle: { fill: "#e25c3b" },
+                textStyle: {
+                  fill: "#A4453F",
+                  fontWeight: 600,
+                  letterSpacing: "0.08em",
+                },
                 legend: lostLabel,
                 legendPosition: "bottom-left",
                 legendOrientation: "vertical",

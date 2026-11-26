@@ -1,41 +1,40 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useTranslate } from "ra-core";
 
-export const Welcome = () => (
-  <Card>
-    <CardHeader className="px-4">
-      <CardTitle>Your CRM Starter Kit</CardTitle>
-    </CardHeader>
-    <CardContent className="px-4">
-      <p className="text-sm mb-4">
-        <a
-          href="https://marmelab.com/atomic-crm"
-          className="underline hover:no-underline"
-        >
-          Atomic CRM
-        </a>{" "}
-        is a template designed to help you quickly build your own CRM.
-      </p>
-      <p className="text-sm mb-4">
-        This demo runs on a mock API, so you can explore and modify the data. It
-        resets on reload. The full version uses Supabase for the backend.
-      </p>
-      <p className="text-sm">
-        Powered by{" "}
-        <a
-          href="https://marmelab.com/shadcn-admin-kit"
-          className="underline hover:no-underline"
-        >
-          shadcn-admin-kit
-        </a>
-        , Atomic CRM is fully open-source. You can find the code at{" "}
-        <a
-          href="https://github.com/marmelab/atomic-crm"
-          className="underline hover:no-underline"
-        >
-          marmelab/atomic-crm
-        </a>
-        .
-      </p>
-    </CardContent>
-  </Card>
-);
+import { useConfigurationContext } from "../root/ConfigurationContext";
+
+/**
+ * Shown on the dashboard of the demo (FakeRest) build only.
+ */
+export const Welcome = () => {
+  const { title } = useConfigurationContext();
+  const translate = useTranslate();
+  return (
+    <Card className="dark relative overflow-hidden bg-header text-foreground ring-white/[0.06]">
+      <div className="pointer-events-none absolute -right-20 -top-20 size-56 rounded-full bg-[radial-gradient(circle,color-mix(in_oklch,var(--brand)_28%,transparent),transparent_70%)]" />
+      <CardHeader className="relative px-5">
+        <p className="eyebrow">
+          {translate("crm.dashboard.demo.eyebrow", { _: "Preview workspace" })}
+        </p>
+        <CardTitle className="font-display mt-1 text-xl">
+          {translate("crm.dashboard.demo.title", {
+            _: "Welcome to %{title}",
+            title,
+          })}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="relative space-y-3 px-5 text-sm text-muted-foreground">
+        <p>
+          {translate("crm.dashboard.demo.body_1", {
+            _: "You are exploring a live preview filled with sample clients, companies and deals.",
+          })}
+        </p>
+        <p>
+          {translate("crm.dashboard.demo.body_2", {
+            _: "Click around and edit anything: the sample data resets every time you reload.",
+          })}
+        </p>
+      </CardContent>
+    </Card>
+  );
+};

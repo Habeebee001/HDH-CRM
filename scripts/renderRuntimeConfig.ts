@@ -21,9 +21,14 @@ const ENV_KEYS = {
   googleWorkplaceDomain: "VITE_GOOGLE_WORKPLACE_DOMAIN",
   disableEmailPasswordAuthentication:
     "VITE_DISABLE_EMAIL_PASSWORD_AUTHENTICATION",
+  emailEnabled: "VITE_EMAIL_ENABLED",
 };
 
-const BOOLEAN_KEYS = ["isDemo", "disableEmailPasswordAuthentication"];
+const BOOLEAN_KEYS = [
+  "isDemo",
+  "disableEmailPasswordAuthentication",
+  "emailEnabled",
+];
 
 export const renderRuntimeConfig = (env: Env): string => {
   const config = Object.fromEntries(

@@ -2,11 +2,17 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/inter";
+@import "@fontsource-variable/playfair-display";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Playfair Display Variable", ui-serif, Georgia, serif;
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-brand-soft: var(--brand-soft);
+  --color-header: var(--header);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -44,93 +50,110 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
+/*
+ * HDH "Ink & Champagne" palette
+ * - Ink (#111114) and warm ivory (#F7F5F0) as the base
+ * - Champagne gold as a sparing accent (active states, focus, highlights)
+ */
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --radius: 0.5rem;
+  --background: oklch(0.972 0.006 88);
+  --foreground: oklch(0.18 0.005 285);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.18 0.005 285);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-  --avatar-0: oklch(0.85 0.08 240);
-  --avatar-1: oklch(0.88 0.1 340);
-  --avatar-2: oklch(0.85 0.07 180);
-  --avatar-3: oklch(0.9 0.09 40);
-  --avatar-4: oklch(0.87 0.08 300);
-  --avatar-5: oklch(0.85 0.08 150);
-  --avatar-6: oklch(0.87 0.08 200);
-  --avatar-7: oklch(0.88 0.09 10);
-  --avatar-8: oklch(0.92 0.08 80);
-  --avatar-9: oklch(0.86 0.09 270);
+  --popover-foreground: oklch(0.18 0.005 285);
+  --primary: oklch(0.18 0.005 285);
+  --primary-foreground: oklch(0.97 0.012 88);
+  --secondary: oklch(0.945 0.008 85);
+  --secondary-foreground: oklch(0.18 0.005 285);
+  --muted: oklch(0.945 0.008 85);
+  --muted-foreground: oklch(0.5 0.012 80);
+  --accent: oklch(0.94 0.016 85);
+  --accent-foreground: oklch(0.18 0.005 285);
+  --destructive: oklch(0.55 0.19 27);
+  --border: oklch(0.905 0.011 85);
+  --input: oklch(0.88 0.012 85);
+  --ring: oklch(0.72 0.095 80);
+  --brand: oklch(0.6 0.095 78);
+  --brand-foreground: oklch(0.18 0.005 285);
+  --brand-soft: oklch(0.95 0.03 85);
+  --header: oklch(0.165 0.005 285);
+  --chart-1: oklch(0.72 0.095 80);
+  --chart-2: oklch(0.3 0.006 285);
+  --chart-3: oklch(0.58 0.09 60);
+  --chart-4: oklch(0.66 0.05 150);
+  --chart-5: oklch(0.82 0.02 85);
+  --sidebar: oklch(0.165 0.005 285);
+  --sidebar-foreground: oklch(0.95 0.01 88);
+  --sidebar-primary: oklch(0.78 0.09 82);
+  --sidebar-primary-foreground: oklch(0.18 0.005 285);
+  --sidebar-accent: oklch(0.24 0.006 285);
+  --sidebar-accent-foreground: oklch(0.95 0.01 88);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.72 0.095 80);
+  --avatar-0: oklch(0.86 0.05 80);
+  --avatar-1: oklch(0.86 0.04 30);
+  --avatar-2: oklch(0.86 0.04 150);
+  --avatar-3: oklch(0.88 0.06 90);
+  --avatar-4: oklch(0.85 0.03 260);
+  --avatar-5: oklch(0.86 0.04 190);
+  --avatar-6: oklch(0.84 0.05 60);
+  --avatar-7: oklch(0.87 0.03 330);
+  --avatar-8: oklch(0.9 0.04 100);
+  --avatar-9: oklch(0.85 0.02 285);
+}
+
+/* Global dark mode (the theme class lives on <html>) */
+html.dark {
+  --header: oklch(0.125 0.003 285);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 15%);
+  --background: oklch(0.15 0.003 285);
+  --foreground: oklch(0.94 0.01 88);
+  --card: oklch(0.19 0.004 285);
+  --card-foreground: oklch(0.94 0.01 88);
+  --popover: oklch(0.2 0.004 285);
+  --popover-foreground: oklch(0.94 0.01 88);
+  --primary: oklch(0.94 0.01 88);
+  --primary-foreground: oklch(0.18 0.005 285);
+  --secondary: oklch(0.23 0.005 285);
+  --secondary-foreground: oklch(0.94 0.01 88);
+  --muted: oklch(0.23 0.005 285);
+  --muted-foreground: oklch(0.7 0.012 85);
+  --accent: oklch(0.26 0.006 285);
+  --accent-foreground: oklch(0.94 0.01 88);
+  --destructive: oklch(0.66 0.17 25);
+  --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.78 0.09 82);
+  --brand: oklch(0.79 0.09 82);
+  --brand-foreground: oklch(0.18 0.005 285);
+  --brand-soft: oklch(0.3 0.04 80);
+  --chart-1: oklch(0.79 0.09 82);
+  --chart-2: oklch(0.9 0.012 88);
+  --chart-3: oklch(0.62 0.09 60);
+  --chart-4: oklch(0.66 0.05 150);
+  --chart-5: oklch(0.45 0.01 85);
+  --sidebar: oklch(0.125 0.003 285);
+  --sidebar-foreground: oklch(0.94 0.01 88);
+  --sidebar-primary: oklch(0.79 0.09 82);
+  --sidebar-primary-foreground: oklch(0.18 0.005 285);
+  --sidebar-accent: oklch(0.24 0.006 285);
+  --sidebar-accent-foreground: oklch(0.94 0.01 88);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
-  --avatar-0: oklch(0.35 0.12 240);
-  --avatar-1: oklch(0.38 0.14 340);
-  --avatar-2: oklch(0.35 0.11 180);
-  --avatar-3: oklch(0.38 0.13 40);
-  --avatar-4: oklch(0.36 0.12 300);
-  --avatar-5: oklch(0.35 0.11 150);
-  --avatar-6: oklch(0.37 0.12 200);
-  --avatar-7: oklch(0.38 0.14 10);
-  --avatar-8: oklch(0.4 0.11 80);
-  --avatar-9: oklch(0.36 0.13 270);
+  --sidebar-ring: oklch(0.78 0.09 82);
+  --avatar-0: oklch(0.38 0.06 80);
+  --avatar-1: oklch(0.36 0.05 30);
+  --avatar-2: oklch(0.36 0.05 150);
+  --avatar-3: oklch(0.4 0.06 90);
+  --avatar-4: oklch(0.35 0.04 260);
+  --avatar-5: oklch(0.36 0.05 190);
+  --avatar-6: oklch(0.38 0.06 60);
+  --avatar-7: oklch(0.36 0.04 330);
+  --avatar-8: oklch(0.4 0.05 100);
+  --avatar-9: oklch(0.35 0.02 285);
 }
 
 a,
@@ -197,4 +220,30 @@ body {
   html {
     overscroll-behavior-y: none;
   }
+}
+
+/* ---------- HDH brand utilities ---------- */
+
+@layer components {
+  /* Elegant serif for headings / wordmark. Playfair is high-contrast, so keep
+     headings at a regular-to-medium weight. */
+  .font-display {
+    font-family: var(--font-display);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    font-optical-sizing: auto;
+  }
+
+  /* Small uppercase "eyebrow" labels */
+  .eyebrow {
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.28em;
+    color: var(--brand);
+  }
+}
+
+::selection {
+  background: color-mix(in oklch, var(--brand) 30%, transparent);
 }

@@ -2,15 +2,17 @@ import type { ConfigurationContextValue } from "./ConfigurationContext";
 // Import the logos as module assets so Vite resolves their URL relative to the
 // JS chunk (import.meta.url), not the current route. A plain "./logos/..." path
 // breaks on nested routes like /oauth/consent and under a deployment sub-path.
-import darkModeLogo from "./logos/logo_atomic_crm_dark.svg";
-import lightModeLogo from "./logos/logo_atomic_crm_light.svg";
+// HDH brand marks (bold cut, optimised for small sizes such as the header).
+// The fine cut (hdh_logo_*.svg) is used for large displays like the login page.
+import darkModeLogo from "./logos/hdh_mark_ivory.svg";
+import lightModeLogo from "./logos/hdh_mark_ink.svg";
 
 export const defaultDarkModeLogo = darkModeLogo;
 export const defaultLightModeLogo = lightModeLogo;
 
-export const defaultCurrency = "USD";
+export const defaultCurrency = "NGN";
 
-export const defaultTitle = "Atomic CRM";
+export const defaultTitle = "HDH CRM";
 
 export const defaultCompanySectors = [
   { value: "communication-services", label: "Communication Services" },

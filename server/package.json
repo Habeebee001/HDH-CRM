@@ -1,0 +1,23 @@
+{
+  "name": "hdh-crm-server",
+  "private": true,
+  "version": "1.0.0",
+  "description": "HDH CRM backend: auth, file storage and admin functions in front of PostgREST, for Neon + Railway",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "start": "node index.ts",
+    "migrate": "node db/migrate.ts"
+  },
+  "dependencies": {
+    "nodemailer": "^10.6.1",
+    "pg": "^8.23.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.19.2",
+    "@types/nodemailer": "^8.0.2",
+    "@types/pg": "^8.23.1"
+  }
+}

@@ -36,9 +36,9 @@ export const HotContacts = () => {
     <div className="flex flex-col gap-2">
       <div className="flex items-center">
         <div className="mr-3 flex">
-          <Users className="text-muted-foreground w-6 h-6" />
+          <Users className="text-brand w-5 h-5" />
         </div>
-        <h2 className="text-xl font-semibold text-muted-foreground">
+        <h2 className="font-display text-2xl text-foreground">
           {translate("resources.contacts.hot.title")}
         </h2>
         <TooltipProvider>
