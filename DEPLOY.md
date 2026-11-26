@@ -18,7 +18,8 @@ The schema is created automatically on the first start. Nothing to run by hand.
 ## 1. Create the Neon database (5 minutes)
 
 1. Sign in at <https://neon.com> and click **New project**.
-2. Name it `hdh-crm`, keep **Postgres 17**, and pick the region closest to
+2. Name it `hdh-crm`, keep the default Postgres version (17 and 18 are both
+   tested), and pick the region closest to
    your team. From Nigeria, **AWS Europe (Frankfurt)** or **AWS Europe
    (London)** are the closest.
 3. Leave **Neon Auth** and the **Data API** turned off: HDH CRM brings its own.

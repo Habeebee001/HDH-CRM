@@ -1086,7 +1086,6 @@ create policy "Enable access for authenticated users only" on public.favicons_ex
 --
 
 -- Schema usage
-grant usage on schema public to postgres;
 grant usage on schema public to anon;
 grant usage on schema public to authenticated;
 
