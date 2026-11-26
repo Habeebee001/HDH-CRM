@@ -1,6 +1,7 @@
 import * as Papa from "papaparse";
 import { useCallback, useMemo, useRef, useState } from "react";
 
+import { findHeaderRow } from "../dataImport/columnMapping";
 import { describeImportError } from "../dataImport/describeImportError";
 
 /**
@@ -23,15 +24,23 @@ export class ImportFileError extends Error {
 /** Column names derived from the header row, or the reason to refuse the file */
 type ColumnPlan = {
   names: string[];
+  matched?: Record<string, string>;
   problem?: { messageKey: string; messageArgs: Record<string, string> };
 };
 
-const readHeaderRow = (file: File) =>
-  new Promise<string[]>((resolve, reject) => {
+/**
+ * The first lines of the file, blank ones included so that a row's index is
+ * its line number (Papa Parse's skipFirstNLines counts lines).
+ */
+const readFirstRows = (file: File, count: number) =>
+  new Promise<string[][]>((resolve, reject) => {
     Papa.parse<string[]>(file, {
-      preview: 1,
-      skipEmptyLines: "greedy",
-      complete: (results) => resolve((results.data[0] ?? []).map(String)),
+      preview: count,
+      skipEmptyLines: false,
+      complete: (results) =>
+        resolve(
+          results.data.map((row) => row.map((cell) => String(cell ?? ""))),
+        ),
       error: reject,
     });
   });
@@ -106,9 +115,12 @@ export function usePapaParse<T>({
       // Read the header row first: a file missing a required column is refused
       // with an explanation instead of failing on every row.
       let columnNames: string[] | undefined;
+      let headerRow = 0;
       if (planColumns) {
         try {
-          const plan = planColumns(await readHeaderRow(file));
+          const rows = await readFirstRows(file, 15);
+          headerRow = findHeaderRow(rows, planColumns);
+          const plan = planColumns(rows[headerRow] ?? []);
           if (importIdRef.current !== importId) return;
           if (plan.problem) {
             setImporter({
@@ -130,6 +142,8 @@ export function usePapaParse<T>({
 
       Papa.parse<T>(file, {
         header: true,
+        // Title lines above the column names are not records
+        skipFirstNLines: headerRow,
         // Rows holding only separators (",,,,") are left over by spreadsheets
         skipEmptyLines: "greedy",
         transformHeader: columnNames

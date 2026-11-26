@@ -142,6 +142,37 @@ const HOP_BY_HOP = new Set([
   "apikey",
 ]);
 
+/**
+ * Logs why the database refused a write (code and message only: the error's
+ * `details` can quote the whole row, i.e. customer data). An import refused row
+ * by row would repeat the same error hundreds of times, so identical errors are
+ * logged once per minute with a count of the repeats.
+ */
+const recentErrors = new Map<string, { at: number; repeats: number }>();
+const logRefusedWrite = (method: string, path: string, status: number, body: string) => {
+  let code = "";
+  let message = body.slice(0, 200);
+  try {
+    const parsed = JSON.parse(body) as { code?: unknown; message?: unknown };
+    code = String(parsed.code ?? "");
+    message = String(parsed.message ?? "").slice(0, 200);
+  } catch {
+    // not JSON: keep the start of the body
+  }
+  const table = path.split("?")[0];
+  const key = `${status} ${method} ${table} ${code} ${message}`;
+  const now = Date.now();
+  const previous = recentErrors.get(key);
+  if (previous && now - previous.at < 60_000) {
+    previous.repeats += 1;
+    return;
+  }
+  if (recentErrors.size > 200) recentErrors.clear();
+  recentErrors.set(key, { at: now, repeats: 0 });
+  const repeats = previous?.repeats ? ` (and ${previous.repeats} more like it in the previous minute)` : "";
+  log.warn(`Database refused ${method} ${table} (HTTP ${status}${code ? `, ${code}` : ""}): ${message}${repeats}`);
+};
+
 export const proxyToPostgrest = (req: Req, res: Res, pathAndQuery: string) => {
   if (!ready) {
     sendJson(res, 503, { message: "The database API is starting, please retry in a few seconds." }, { "Retry-After": "2" });
@@ -173,6 +204,19 @@ export const proxyToPostgrest = (req: Req, res: Res, pathAndQuery: string) => {
         if (!HOP_BY_HOP.has(name) && value !== undefined) out[name] = value;
       }
       out["cache-control"] = "no-store";
+      const status = response.statusCode ?? 502;
+      if (status >= 400 && req.method !== "GET" && req.method !== "HEAD") {
+        // Error bodies are small JSON documents: keep a copy to log the reason
+        const chunks: Buffer[] = [];
+        let size = 0;
+        response.on("data", (chunk: Buffer) => {
+          if (size < 4096) chunks.push(chunk);
+          size += chunk.length;
+        });
+        response.on("end", () =>
+          logRefusedWrite(req.method ?? "", pathAndQuery, status, Buffer.concat(chunks).toString("utf8")),
+        );
+      }
       const acceptsGzip = /\bgzip\b/.test(String(req.headers["accept-encoding"] ?? ""));
       const length = Number(response.headers["content-length"] ?? 0);
       if (acceptsGzip && (length === 0 || length > 1024) && req.method !== "HEAD" && response.statusCode !== 204) {

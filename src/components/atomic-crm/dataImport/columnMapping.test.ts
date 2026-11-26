@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { normalizeHeader, planColumns, sampleHeadersOf } from "./columnMapping";
+import {
+  findHeaderRow,
+  normalizeHeader,
+  planColumns,
+  sampleHeadersOf,
+} from "./columnMapping";
 
 describe("normalizeHeader", () => {
   it("ignores case, spacing, punctuation, accents and bracketed units", () => {
@@ -63,6 +68,28 @@ describe("planColumns", () => {
     expect(plan.problem?.messageKey).toBe(
       "crm.data_import.problem.looks_like_contacts",
     );
+  });
+
+  it("does not take a customer list with a Status column for deals", () => {
+    const plan = planColumns("deals", ["Name", "Phone", "Status", "Date"]);
+    expect(plan.problem?.messageKey).toBe(
+      "crm.data_import.problem.looks_like_contacts",
+    );
+  });
+
+  it("accepts a sales sheet naming the customer and the product", () => {
+    const plan = planColumns("deals", [
+      "Customer",
+      "Product",
+      "Amount",
+      "Phone",
+    ]);
+    expect(plan.problem).toBeUndefined();
+    expect(plan.matched).toMatchObject({
+      company: "Customer",
+      categories: "Product",
+      amount: "Amount",
+    });
   });
 
   it("accepts a deals file that also lists a phone number", () => {
@@ -151,5 +178,39 @@ describe("planColumns", () => {
     // "Deal Name" is the better deal name; "Name" stays unused
     expect(plan.names[1]).toBe("name");
     expect(plan.names[0]).toMatch(/^__unused_0_/);
+  });
+});
+
+describe("findHeaderRow", () => {
+  const plan = (headers: string[]) => planColumns("contacts", headers);
+
+  it("finds the column names below a title and blank lines", () => {
+    const rows = [
+      ["HDH CUSTOMERS LIST 2026", "", ""],
+      ["", "", ""],
+      ["S/N", "Customer Name", "Phone No"],
+      ["1", "Chidi Eze", "08031234567"],
+    ];
+    expect(findHeaderRow(rows, plan)).toBe(2);
+  });
+
+  it("keeps the first row when it holds the column names", () => {
+    const rows = [
+      ["first_name", "last_name"],
+      ["Ada", "Lovelace"],
+    ];
+    expect(findHeaderRow(rows, plan)).toBe(0);
+  });
+
+  it("returns 0 when no row is recognised", () => {
+    expect(
+      findHeaderRow(
+        [
+          ["a", "b"],
+          ["c", "d"],
+        ],
+        plan,
+      ),
+    ).toBe(0);
   });
 });

@@ -31,11 +31,19 @@ export default defineConfig({
     }),
     VitePWA({
       registerType: "autoUpdate",
+      // src/main.tsx registers the service worker (and reloads on updates)
+      injectRegister: false,
       workbox: {
+        // A new version takes over at once (then main.tsx reloads the page).
+        // vite-plugin-pwa only sets these itself when it injects registerSW.js.
+        skipWaiting: true,
+        clientsClaim: true,
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff,woff2}"],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MiB
         // config.js is rewritten at deploy time: a precached copy would go stale.
-        globIgnores: ["**/node_modules/**/*", "config.js"],
+        // stats.html is the bundle size report: users never need it, and
+        // precaching it made every update heavier on mobile data.
+        globIgnores: ["**/node_modules/**/*", "config.js", "stats.html"],
         // The HDH CRM server answers these on the app's own origin (invitation
         // and password links, file downloads): never replace them with the app.
         navigateFallbackDenylist: [

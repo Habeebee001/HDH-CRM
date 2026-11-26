@@ -8,6 +8,7 @@ import {
   toBoolean,
   toConfiguredValue,
   toIsoDateTime,
+  toPhone,
   toText,
 } from "../dataImport/parseCell";
 import type { ImportCell } from "../dataImport/types";
@@ -96,9 +97,9 @@ export function useContactImport() {
             { email: toText(row.email_other), type: "Other" },
           ].filter(({ email }) => email);
           const phone_jsonb = [
-            { number: toText(row.phone_work), type: "Work" },
-            { number: toText(row.phone_home), type: "Home" },
-            { number: toText(row.phone_other), type: "Other" },
+            { number: toPhone(row.phone_work), type: "Work" },
+            { number: toPhone(row.phone_home), type: "Home" },
+            { number: toPhone(row.phone_other), type: "Other" },
           ].filter(({ number }) => number);
           if (
             !first_name &&

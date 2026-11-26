@@ -67,8 +67,9 @@ export function useDealImport(): ProcessImportBatch {
       const now = new Date().toISOString();
       return createEachRow(
         rows.map(({ row, companyName, stage }) => {
-          // A sales sheet often names the client rather than the deal
-          const name = toText(row.name) ?? companyName;
+          // A sales sheet often names the product or the client, not the deal
+          const name =
+            toText(row.name) ?? toText(row.categories) ?? companyName;
           if (!name) return refuseRow("a row has no deal name or client");
           return dataProvider.create("deals", {
             data: {

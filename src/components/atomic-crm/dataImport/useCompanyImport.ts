@@ -4,7 +4,7 @@ import { useDataProvider, useGetIdentity } from "ra-core";
 import { mapSizeToCategory } from "../companies/sizes";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { createEachRow, refuseRow } from "./createEachRow";
-import { toConfiguredValue, toFirstNumber, toText } from "./parseCell";
+import { toConfiguredValue, toFirstNumber, toPhone, toText } from "./parseCell";
 import type { ImportCell, ProcessImportBatch } from "./types";
 
 /**
@@ -29,7 +29,7 @@ export function useCompanyImport(): ProcessImportBatch {
               size: sizeOf(row.size),
               linkedin_url: toText(row.linkedin_url),
               website: toText(row.website),
-              phone_number: toText(row.phone_number),
+              phone_number: toPhone(row.phone_number),
               address: toText(row.address),
               zipcode: toText(row.zipcode),
               city: toText(row.city),

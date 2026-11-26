@@ -145,6 +145,19 @@ export const toAmount = (cell: ImportCell): number | undefined => {
   return Math.round(Number(match[1]) * multiplier);
 };
 
+/**
+ * Phone number as text. Excel stores a typed 08031234567 as the number
+ * 8031234567, so a 10-digit Nigerian mobile number gets its 0 back, and
+ * 2348031234567 its "+".
+ */
+export const toPhone = (cell: ImportCell): string | undefined => {
+  const text = toText(cell);
+  if (text === undefined) return undefined;
+  if (/^[789][01]\d{8}$/.test(text)) return `0${text}`;
+  if (/^234[789][01]\d{8}$/.test(text)) return `+${text}`;
+  return text;
+};
+
 /** Yes/no cell as a boolean, or undefined when it is empty or unclear. */
 export const toBoolean = (cell: ImportCell): boolean | undefined => {
   if (typeof cell === "boolean") return cell;

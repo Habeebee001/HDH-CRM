@@ -467,6 +467,22 @@ const DEAL_NAME_HEADERS = [
   "project_name",
 ];
 
+/**
+ * Headers that only a deal file has. "Status" or "Date" alone prove nothing: a
+ * customer list often has them too.
+ */
+const DEAL_ONLY_HEADERS = [
+  "stage",
+  "deal_stage",
+  "pipeline_stage",
+  "deal_status",
+  "expected_closing_date",
+  "closing_date",
+  "close_date",
+  "expected_close_date",
+  "expected_close",
+];
+
 const looksLikePeople = (found: string): ImportProblem => ({
   messageKey: "crm.data_import.problem.looks_like_contacts",
   messageArgs: {
@@ -495,8 +511,12 @@ export const planColumns = (
     // A contact list imported as deals would turn every person into a deal:
     // without any deal column (amount, stage…) it is refused.
     const hasDealColumns =
-      has("amount", "stage", "expected_closing_date", "categories") ||
-      DEAL_NAME_HEADERS.includes(normalizeHeader(plan.matched.name));
+      has("amount") ||
+      DEAL_NAME_HEADERS.includes(normalizeHeader(plan.matched.name)) ||
+      [plan.matched.stage, plan.matched.expected_closing_date].some(
+        (header) =>
+          header && DEAL_ONLY_HEADERS.includes(normalizeHeader(header)),
+      );
     if (hasPersonColumns && !hasDealColumns) {
       return { ...plan, problem: looksLikePeople(found) };
     }
@@ -557,6 +577,30 @@ export const planColumns = (
   }
 
   return plan;
+};
+
+/**
+ * Index of the header row among the first rows of a file: spreadsheets often
+ * start with a title ("HDH CUSTOMERS 2026"), a date or blank lines above the
+ * column names. The header is the first row where the most columns are
+ * recognised; 0 when none is.
+ */
+export const findHeaderRow = (
+  rows: unknown[][],
+  plan: (headers: string[]) => { matched?: Record<string, string> },
+): number => {
+  let best = 0;
+  let bestScore = 0;
+  rows.forEach((row, index) => {
+    const score = Object.keys(
+      plan(row.map((cell) => String(cell ?? ""))).matched ?? {},
+    ).length;
+    if (score > bestScore) {
+      best = index;
+      bestScore = score;
+    }
+  });
+  return best;
 };
 
 /** The header row of a sample CSV, e.g. ["name", "company", …] */

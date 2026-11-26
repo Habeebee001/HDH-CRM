@@ -10,6 +10,7 @@ import {
   toIsoDate,
   toIsoDateTime,
   toNumber,
+  toPhone,
   toStage,
   toText,
 } from "./parseCell";
@@ -230,5 +231,22 @@ describe("toConfiguredValues", () => {
       "opportunity",
     ]);
     expect(toConfiguredValues(null, stages)).toEqual([]);
+  });
+});
+
+describe("toPhone", () => {
+  it("puts back the 0 Excel drops from Nigerian mobile numbers", () => {
+    expect(toPhone("8031234567")).toBe("08031234567");
+    expect(toPhone(8031234567)).toBe("08031234567");
+    expect(toPhone("9012345678")).toBe("09012345678");
+    expect(toPhone("2348031234567")).toBe("+2348031234567");
+  });
+
+  it("keeps other numbers as typed", () => {
+    expect(toPhone("08031234567")).toBe("08031234567");
+    expect(toPhone("+234 803 123 4567")).toBe("+234 803 123 4567");
+    expect(toPhone("012345678")).toBe("012345678");
+    expect(toPhone("5551234567")).toBe("5551234567");
+    expect(toPhone("")).toBeUndefined();
   });
 });
