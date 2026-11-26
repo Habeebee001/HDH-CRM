@@ -3,8 +3,8 @@ import { useDataProvider, useGetIdentity } from "ra-core";
 
 import { mapSizeToCategory } from "../companies/sizes";
 import { useConfigurationContext } from "../root/ConfigurationContext";
-import { createEachRow } from "./createEachRow";
-import { toConfiguredValue, toNumber, toText } from "./parseCell";
+import { createEachRow, refuseRow } from "./createEachRow";
+import { toConfiguredValue, toFirstNumber, toText } from "./parseCell";
 import type { ImportCell, ProcessImportBatch } from "./types";
 
 /**
@@ -19,10 +19,12 @@ export function useCompanyImport(): ProcessImportBatch {
   return useCallback(
     (batch) =>
       createEachRow(
-        batch.map((row) =>
-          dataProvider.create("companies", {
+        batch.map((row) => {
+          const name = toText(row.name);
+          if (!name) return refuseRow("a row has no company name");
+          return dataProvider.create("companies", {
             data: {
-              name: toText(row.name),
+              name,
               sector: toConfiguredValue(row.sector, companySectors),
               size: sizeOf(row.size),
               linkedin_url: toText(row.linkedin_url),
@@ -39,8 +41,8 @@ export function useCompanyImport(): ProcessImportBatch {
               sales_id: identity?.id,
               created_at: new Date().toISOString(),
             },
-          }),
-        ),
+          });
+        }),
       ),
     [companySectors, dataProvider, identity?.id],
   );
@@ -51,6 +53,7 @@ export function useCompanyImport(): ProcessImportBatch {
  * into the nearest bucket the company screens can render.
  */
 const sizeOf = (cell: ImportCell) => {
-  const size = toNumber(cell);
+  // "11-50" or "200 staff" count too
+  const size = toFirstNumber(cell);
   return size === undefined ? undefined : mapSizeToCategory(size);
 };

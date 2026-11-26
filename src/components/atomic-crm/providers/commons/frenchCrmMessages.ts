@@ -452,6 +452,24 @@ export const frenchCrmMessages = {
       button: "Importer un fichier CSV",
       complete:
         "Import terminé. %{importCount} enregistrements importés, %{errorCount} erreurs",
+      complete_with_errors:
+        "Import terminé. %{importCount} enregistrements importés, %{errorCount} erreurs. Premier problème : %{reason}.",
+      columns_hint:
+        "Colonnes : %{columns}. Les noms courants comme %{examples} sont aussi reconnus.",
+      excel_hint:
+        "Fichier Excel ? Dans Excel, choisissez Fichier → Enregistrer sous → CSV UTF-8. Dans Google Sheets, Fichier → Télécharger → CSV.",
+      problem: {
+        no_columns:
+          "Aucune colonne de ce fichier n'a été reconnue (trouvées : %{found}). La première ligne doit contenir les noms des colonnes, par exemple : %{expected}. Un fichier Excel doit d'abord être enregistré en CSV.",
+        no_contact_columns:
+          "Ce fichier n'a pas de colonne pour le nom, l'e-mail ou le téléphone du contact (trouvées : %{found}). Ajoutez une colonne « Name », « Email » ou « Phone », ou téléchargez l'exemple.",
+        no_company_name:
+          "Ce fichier n'a pas de colonne pour le nom de la société (trouvées : %{found}). Nommez cette colonne « name » ou « Company Name », ou téléchargez l'exemple.",
+        no_deal_name:
+          "Ce fichier n'a pas de colonne pour le nom de l'affaire (trouvées : %{found}). Nommez cette colonne « name » ou « Deal Name » (une colonne « Client » ou « Company » convient aussi), ou téléchargez l'exemple.",
+        looks_like_contacts:
+          "Ce fichier ressemble à une liste de personnes (trouvées : %{found}). Pour importer des personnes, ouvrez Contacts et utilisez l'import.",
+      },
       csv_file: "Fichier CSV",
       error:
         "Échec de l'importation de ce fichier. Veuillez vous assurer que vous avez fourni un fichier CSV valide.",

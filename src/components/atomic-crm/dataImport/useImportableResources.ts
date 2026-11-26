@@ -5,6 +5,7 @@ import { useContactImport } from "../contacts/useContactImport";
 import companiesSampleCsv from "./companies_sample.csv?raw";
 import dealsSampleCsv from "./deals_sample.csv?raw";
 import contactsSampleCsv from "../contacts/contacts_export.csv?raw";
+import { planColumns, sampleHeadersOf } from "./columnMapping";
 import type { ImportableResource } from "./types";
 import { useCompanyImport } from "./useCompanyImport";
 import { useDealImport } from "./useDealImport";
@@ -29,7 +30,10 @@ export function useImportableResources(): ImportableResource[] {
     {
       name: "contacts",
       sampleCsv: contactsSampleCsv,
+      // Nigerian numbers start with 0: "08031234567" must not become 8031234567
       textColumns: ["phone_work", "phone_home", "phone_other"],
+      planColumns: (headers) =>
+        planColumns("contacts", headers, sampleHeadersOf(contactsSampleCsv)),
       // The contact importer predates the shared ImportRow type and declares
       // its own all-string schema; it reads the same parsed cells.
       processBatch: (batch) => processContacts(batch as ContactImportSchema[]),
@@ -40,9 +44,17 @@ export function useImportableResources(): ImportableResource[] {
       // These are text columns whose leading zero must survive the parsing:
       // a "02134" zipcode would otherwise be stored as 2134.
       textColumns: ["zipcode", "phone_number", "tax_identifier"],
+      planColumns: (headers) =>
+        planColumns("companies", headers, sampleHeadersOf(companiesSampleCsv)),
       processBatch: processCompanies,
     },
-    { name: "deals", sampleCsv: dealsSampleCsv, processBatch: processDeals },
+    {
+      name: "deals",
+      sampleCsv: dealsSampleCsv,
+      planColumns: (headers) =>
+        planColumns("deals", headers, sampleHeadersOf(dealsSampleCsv)),
+      processBatch: processDeals,
+    },
   ];
 
   return resources.filter(({ name }) => name in definitions);

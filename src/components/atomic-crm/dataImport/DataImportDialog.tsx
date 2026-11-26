@@ -26,6 +26,7 @@ import { FormToolbar } from "@/components/admin/simple-form";
 import { FileInput } from "@/components/admin/file-input";
 import { FileField } from "@/components/admin/file-field";
 
+import { HEADER_EXAMPLES, sampleHeadersOf } from "./columnMapping";
 import type { ImportableResource } from "./types";
 import type { ImportableResourceName } from "./useImportableResources";
 
@@ -118,6 +119,17 @@ export function DataImportDialog({
             <Alert>
               <AlertDescription className="flex flex-col gap-4">
                 {translate("crm.data_import.sample_hint")}
+                <span className="text-muted-foreground text-xs leading-relaxed">
+                  {translate("crm.data_import.columns_hint", {
+                    columns: sampleHeadersOf(resource.sampleCsv).join(", "),
+                    examples: HEADER_EXAMPLES[resource.name],
+                    _: `Columns: ${sampleHeadersOf(resource.sampleCsv).join(", ")}. Everyday names such as ${HEADER_EXAMPLES[resource.name]} are recognised too.`,
+                  })}
+                  <br />
+                  {translate("crm.data_import.excel_hint", {
+                    _: "Excel file? In Excel choose File → Save As → CSV UTF-8. In Google Sheets choose File → Download → CSV.",
+                  })}
+                </span>
                 <Link
                   to={sampleUrl}
                   download={sampleFileName(resource.name)}
@@ -131,7 +143,11 @@ export function DataImportDialog({
             <FileInput
               source="csv"
               label="crm.data_import.csv_file"
-              accept={{ "text/csv": [".csv"] }}
+              // Windows reports Excel-made CSV files as application/vnd.ms-excel
+              accept={{
+                "text/csv": [".csv"],
+                "application/vnd.ms-excel": [".csv"],
+              }}
               onChange={setFile}
             >
               <FileField source="src" title="title" target="_blank" />

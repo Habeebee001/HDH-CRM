@@ -704,7 +704,15 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/dataImport/describeImportError.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/dataImport/createEachRow.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dataImport/columnMapping.ts",
           "type": "registry:component"
         },
         {

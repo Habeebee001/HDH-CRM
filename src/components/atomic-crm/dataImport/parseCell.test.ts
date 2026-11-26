@@ -1,11 +1,16 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  toAmount,
+  toBoolean,
   toConfiguredValue,
   toConfiguredValues,
+  toFirstNumber,
   toInteger,
   toIsoDate,
+  toIsoDateTime,
   toNumber,
+  toStage,
   toText,
 } from "./parseCell";
 
@@ -66,15 +71,129 @@ describe("toIsoDate", () => {
     expect(toIsoDate("2026-12-31")).toBe("2026-12-31T00:00:00.000Z");
   });
 
-  it("returns undefined for a cell that is not a plain YYYY-MM-DD date", () => {
+  it("reads day-first dates, as written in Nigeria", () => {
+    expect(toIsoDate("30/09/2026")).toBe("2026-09-30T00:00:00.000Z");
+    expect(toIsoDate("30-09-2026")).toBe("2026-09-30T00:00:00.000Z");
+    expect(toIsoDate("30.09.2026")).toBe("2026-09-30T00:00:00.000Z");
+    expect(toIsoDate("5/1/26")).toBe("2026-01-05T00:00:00.000Z");
+    // Ambiguous: day first
+    expect(toIsoDate("03/04/2026")).toBe("2026-04-03T00:00:00.000Z");
+  });
+
+  it("falls back to month-first when the day cannot come first", () => {
+    expect(toIsoDate("09/30/2026")).toBe("2026-09-30T00:00:00.000Z");
+  });
+
+  it("reads dates with month names", () => {
+    expect(toIsoDate("30 Sep 2026")).toBe("2026-09-30T00:00:00.000Z");
+    expect(toIsoDate("30-Sep-2026")).toBe("2026-09-30T00:00:00.000Z");
+    expect(toIsoDate("Sep 30, 2026")).toBe("2026-09-30T00:00:00.000Z");
+    expect(toIsoDate("September 30 2026")).toBe("2026-09-30T00:00:00.000Z");
+    expect(toIsoDate("1st December 2026")).toBe("2026-12-01T00:00:00.000Z");
+  });
+
+  it("keeps only the day of a timestamp", () => {
+    expect(toIsoDate("2026-09-30T15:20:00+01:00")).toBe(
+      "2026-09-30T00:00:00.000Z",
+    );
+  });
+
+  it("returns undefined for a cell that is not a date", () => {
     expect(toIsoDate(null)).toBeUndefined();
+    expect(toIsoDate(undefined)).toBeUndefined();
     expect(toIsoDate("next quarter")).toBeUndefined();
-    // Ambiguous or locale-dependent formats are refused rather than guessed
-    expect(toIsoDate("09/30/2026")).toBeUndefined();
-    expect(toIsoDate("30/09/2026")).toBeUndefined();
+    expect(toIsoDate("32/01/2026")).toBeUndefined();
+    expect(toIsoDate("13/13/2026")).toBeUndefined();
+    expect(toIsoDate("30 Foo 2026")).toBeUndefined();
     // An impossible day rolls over to the next month rather than failing
     expect(toIsoDate("2026-02-31")).toBeUndefined();
     expect(toIsoDate("2026-13-01")).toBeUndefined();
+  });
+});
+
+describe("toIsoDateTime", () => {
+  it("keeps the time of a full timestamp", () => {
+    expect(toIsoDateTime("2024-07-01T11:54:49.95+00:00")).toBe(
+      "2024-07-01T11:54:49.950Z",
+    );
+  });
+
+  it("reads plain dates like toIsoDate, and never throws", () => {
+    expect(toIsoDateTime("01/07/2024")).toBe("2024-07-01T00:00:00.000Z");
+    expect(toIsoDateTime("yesterday")).toBeUndefined();
+    expect(toIsoDateTime(null)).toBeUndefined();
+  });
+});
+
+describe("toAmount", () => {
+  it("reads amounts the way people type them", () => {
+    expect(toAmount(4500000)).toBe(4500000);
+    expect(toAmount("4500000")).toBe(4500000);
+    expect(toAmount("4,500,000")).toBe(4500000);
+    expect(toAmount("4,500,000.60")).toBe(4500001);
+    expect(toAmount("₦4,500,000")).toBe(4500000);
+    expect(toAmount("N4,500,000")).toBe(4500000);
+    expect(toAmount("NGN 4,500,000")).toBe(4500000);
+    expect(toAmount("4.5m")).toBe(4500000);
+    expect(toAmount("2.5M")).toBe(2500000);
+    expect(toAmount("250k")).toBe(250000);
+    expect(toAmount("$1,200")).toBe(1200);
+  });
+
+  it("returns undefined for an empty cell or one without an amount", () => {
+    expect(toAmount(null)).toBeUndefined();
+    expect(toAmount("")).toBeUndefined();
+    expect(toAmount("to be agreed")).toBeUndefined();
+    expect(toAmount("Nil")).toBeUndefined();
+  });
+});
+
+describe("toBoolean", () => {
+  it("reads yes/no answers", () => {
+    expect(toBoolean(true)).toBe(true);
+    expect(toBoolean("Yes")).toBe(true);
+    expect(toBoolean("TRUE")).toBe(true);
+    expect(toBoolean(1)).toBe(true);
+    expect(toBoolean("no")).toBe(false);
+    expect(toBoolean("0")).toBe(false);
+    expect(toBoolean("")).toBeUndefined();
+    expect(toBoolean("maybe")).toBeUndefined();
+  });
+});
+
+describe("toFirstNumber", () => {
+  it("reads the first whole number of the cell", () => {
+    expect(toFirstNumber(50)).toBe(50);
+    expect(toFirstNumber("11-50")).toBe(11);
+    expect(toFirstNumber("1,200 staff")).toBe(1200);
+    expect(toFirstNumber("none")).toBeUndefined();
+  });
+});
+
+describe("toStage", () => {
+  const pipeline = [
+    { value: "opportunity", label: "Opportunity" },
+    { value: "proposal-sent", label: "Proposal Sent" },
+    { value: "won", label: "Won" },
+    { value: "lost", label: "Lost" },
+  ];
+
+  it("matches the stage value or label", () => {
+    expect(toStage("proposal-sent", pipeline)).toBe("proposal-sent");
+    expect(toStage("Proposal Sent", pipeline)).toBe("proposal-sent");
+  });
+
+  it("understands everyday words for the default stages", () => {
+    expect(toStage("Paid", pipeline)).toBe("won");
+    expect(toStage("closed-won", pipeline)).toBe("won");
+    expect(toStage("Pending", pipeline)).toBe("opportunity");
+    expect(toStage("Quote sent", pipeline)).toBe("proposal-sent");
+    expect(toStage("Cancelled", pipeline)).toBe("lost");
+  });
+
+  it("ignores words for stages the pipeline does not have", () => {
+    expect(toStage("On hold", pipeline)).toBeUndefined();
+    expect(toStage("whatever", pipeline)).toBeUndefined();
   });
 });
 

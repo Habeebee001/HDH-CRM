@@ -446,6 +446,24 @@ export const englishCrmMessages = {
       button: "Import CSV",
       complete:
         "Import complete. Imported %{importCount} records, with %{errorCount} errors",
+      complete_with_errors:
+        "Import complete. Imported %{importCount} records, with %{errorCount} errors. First problem: %{reason}.",
+      columns_hint:
+        "Columns: %{columns}. Everyday names such as %{examples} are recognised too.",
+      excel_hint:
+        "Excel file? In Excel choose File → Save As → CSV UTF-8. In Google Sheets choose File → Download → CSV.",
+      problem: {
+        no_columns:
+          "None of the columns of this file were recognised (found: %{found}). The first row must hold the column names, for example: %{expected}. An Excel file must be saved as CSV first.",
+        no_contact_columns:
+          "This file has no column for the contact's name, email or phone (found: %{found}). Add a column such as “Name”, “Email” or “Phone”, or download the sample.",
+        no_company_name:
+          "This file has no column for the company name (found: %{found}). Name that column “name” or “Company Name”, or download the sample.",
+        no_deal_name:
+          "This file has no column for the deal name (found: %{found}). Name that column “name” or “Deal Name” (a “Client” or “Company” column works too), or download the sample.",
+        looks_like_contacts:
+          "This file looks like a list of people (found: %{found}). To import people, open Contacts and use Import there.",
+      },
       csv_file: "CSV File",
       error:
         "Failed to import this file, please make sure you provided a valid CSV file.",

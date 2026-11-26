@@ -420,10 +420,13 @@ describe("DataImportButton", () => {
     await screen.getByRole("button", { name: "Start import" }).click();
 
     // A rejected row used to fail the accounting of its whole batch, so users
-    // re-imported a file whose records had in fact been created
+    // re-imported a file whose records had in fact been created. The report
+    // also says why the row was refused.
     await expect
       .element(
-        screen.getByText("Import complete. Imported 2 records, with 1 errors"),
+        screen.getByText(
+          "Import complete. Imported 2 records, with 1 errors. First problem: a row has no company name.",
+        ),
       )
       .toBeVisible();
 

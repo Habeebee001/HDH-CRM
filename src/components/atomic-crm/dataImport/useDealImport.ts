@@ -3,12 +3,12 @@ import { useDataProvider, useGetIdentity, type DataProvider } from "ra-core";
 
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { useCompanyResolver } from "./useCompanyResolver";
-import { createEachRow } from "./createEachRow";
+import { createEachRow, refuseRow } from "./createEachRow";
 import {
-  toConfiguredValue,
+  toAmount,
   toConfiguredValues,
-  toInteger,
   toIsoDate,
+  toStage,
   toText,
 } from "./parseCell";
 import type { ImportCell, ImportRow, ProcessImportBatch } from "./types";
@@ -34,8 +34,9 @@ type DealRow = {
 
 /**
  * Creates a deal per CSV row. Unknown columns are ignored, missing ones are
- * left empty — except `name`, which the database requires. The `company` column
- * holds a company name: matching companies are reused, unknown ones are created.
+ * left empty — except `name`, which the database requires: a row without one is
+ * named after its company, or refused. The `company` column holds a company
+ * name: matching companies are reused, unknown ones are created.
  */
 export function useDealImport(): ProcessImportBatch {
   const { dealCategories, dealStages } = useConfigurationContext();
@@ -51,7 +52,7 @@ export function useDealImport(): ProcessImportBatch {
         row,
         companyName: toText(row.company),
         // stage is required, so fall back to the first configured one
-        stage: toConfiguredValue(row.stage, dealStages) ?? dealStages[0]?.value,
+        stage: toStage(row.stage, dealStages) ?? dealStages[0]?.value,
       }));
 
       const [companies, indexes] = await Promise.all([
@@ -65,10 +66,13 @@ export function useDealImport(): ProcessImportBatch {
 
       const now = new Date().toISOString();
       return createEachRow(
-        rows.map(({ row, companyName, stage }) =>
-          dataProvider.create("deals", {
+        rows.map(({ row, companyName, stage }) => {
+          // A sales sheet often names the client rather than the deal
+          const name = toText(row.name) ?? companyName;
+          if (!name) return refuseRow("a row has no deal name or client");
+          return dataProvider.create("deals", {
             data: {
-              name: toText(row.name),
+              name,
               company_id: companyName
                 ? companies.get(companyName)?.id
                 : undefined,
@@ -76,16 +80,17 @@ export function useDealImport(): ProcessImportBatch {
               categories: toConfiguredValues(row.categories, dealCategories),
               stage,
               description: toText(row.description),
-              // amount lands in a bigint column, which rejects "4500.50"
-              amount: toInteger(row.amount),
+              // amount lands in a bigint column, which rejects "4500.50" or
+              // "₦4,500,000": toAmount returns a whole number
+              amount: toAmount(row.amount),
               expected_closing_date: toClosingDate(row.expected_closing_date),
               sales_id: identity?.id,
               index: indexes.get(row) ?? 0,
               created_at: now,
               updated_at: now,
             },
-          }),
-        ),
+          });
+        }),
       );
     },
     [dataProvider, dealCategories, dealStages, getCompanies, identity?.id],

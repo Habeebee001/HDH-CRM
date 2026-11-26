@@ -251,15 +251,20 @@ export const createDataProvider = ({
         password,
       };
     },
-    salesCreate: async ({ ...data }: SalesFormData): Promise<Sale> => {
-      const response = await dataProvider.create("sales", {
+    salesCreate: async ({ ...data }: SalesFormData) => {
+      const response = await dataProvider.create<Sale>("sales", {
         data: {
           ...data,
           password: "new_password",
         },
       });
 
-      return response.data;
+      // Same shape as the real backend: the demo has no invitation to share
+      return {
+        ...response.data,
+        invite_link: undefined as string | undefined,
+        email_sent: false as boolean | undefined,
+      };
     },
     salesUpdate: async (
       id: Identifier,

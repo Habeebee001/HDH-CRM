@@ -10,7 +10,7 @@ import {
 } from "react";
 import { useNotify, useRefresh } from "ra-core";
 
-import { usePapaParse } from "../misc/usePapaParse";
+import { ImportFileError, usePapaParse } from "../misc/usePapaParse";
 import { DataImportDialog } from "./DataImportDialog";
 import { DataImportProgressToast } from "./DataImportProgressToast";
 import type { ImportableResource, ImportRow } from "./types";
@@ -59,6 +59,7 @@ export const DataImportProvider = ({ children }: { children: ReactNode }) => {
   const { importer, parseCsv, reset } = usePapaParse<ImportRow>({
     batchSize: 10,
     textColumns: resource?.textColumns,
+    planColumns: resource?.planColumns,
     processBatch: resource?.processBatch ?? rejectImport,
   });
 
@@ -68,16 +69,39 @@ export const DataImportProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (importer.state === "complete") {
       refresh();
-      notify("crm.data_import.complete", {
-        type: "success",
-        messageArgs: {
-          importCount: importer.importCount,
-          errorCount: importer.errorCount,
-        },
-      });
+      if (importer.errorCount === 0) {
+        notify("crm.data_import.complete", {
+          type: "success",
+          messageArgs: {
+            importCount: importer.importCount,
+            errorCount: importer.errorCount,
+          },
+        });
+      } else {
+        // Say why rows were refused, and keep the message until it is read
+        const reason = importer.firstError ?? "unknown error";
+        notify("crm.data_import.complete_with_errors", {
+          type: importer.importCount > 0 ? "warning" : "error",
+          autoHideDuration: null,
+          messageArgs: {
+            importCount: importer.importCount,
+            errorCount: importer.errorCount,
+            reason,
+            _: `Import complete. Imported ${importer.importCount} records, with ${importer.errorCount} errors. First problem: ${reason}.`,
+          },
+        });
+      }
     }
     if (importer.state === "error") {
-      notify("crm.data_import.error", { type: "error" });
+      if (importer.error instanceof ImportFileError) {
+        notify(importer.error.messageKey, {
+          type: "error",
+          autoHideDuration: null,
+          messageArgs: importer.error.messageArgs,
+        });
+      } else {
+        notify("crm.data_import.error", { type: "error" });
+      }
     }
   }, [importer, notify, refresh]);
 
