@@ -61,7 +61,7 @@ const DealLinkedToInputs = () => {
 };
 
 const DealMiscInputs = () => {
-  const { dealStages, dealCategories } = useConfigurationContext();
+  const { dealStages, dealCategories, currency } = useConfigurationContext();
   const translate = useTranslate();
   return (
     <div className="flex flex-col gap-4 flex-1">
@@ -78,6 +78,7 @@ const DealMiscInputs = () => {
       />
       <NumberInput
         source="amount"
+        label={`${translate("resources.deals.fields.amount")} (${currency})`}
         defaultValue={0}
         helperText={false}
         validate={required()}

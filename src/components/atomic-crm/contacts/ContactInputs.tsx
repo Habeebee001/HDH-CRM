@@ -1,6 +1,7 @@
 import {
   email,
   required,
+  useGetIdentity,
   useRecordContext,
   useTranslate,
   useUpdate,
@@ -206,6 +207,8 @@ const ContactPersonalInformationInputs = () => {
 
 const ContactMiscInputs = () => {
   const translate = useTranslate();
+  const { identity } = useGetIdentity();
+  const isSalesRep = identity?.role === "sales_rep";
   return (
     <div className="flex flex-col gap-4">
       <h6 className="text-lg font-semibold">
@@ -222,9 +225,12 @@ const ContactMiscInputs = () => {
         }}
       >
         <SelectInput
-          helperText={false}
+          helperText={
+            isSalesRep ? "Sales reps own the contacts they add." : false
+          }
           optionText={saleOptionRenderer}
           validate={required()}
+          readOnly={isSalesRep}
         />
       </ReferenceInput>
     </div>

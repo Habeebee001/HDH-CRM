@@ -17,6 +17,7 @@ import { log } from "./lib/log.ts";
 import { handleAuth, setJwtSecret } from "./lib/auth.ts";
 import { handleStorage } from "./lib/storage.ts";
 import { handleFunctions } from "./lib/functions.ts";
+import { startWeeklySummaryScheduler } from "./lib/weeklySummary.ts";
 import {
   isPostgrestReady,
   proxyToPostgrest,
@@ -137,6 +138,7 @@ const main = async () => {
         ? `Email: enabled (SMTP ${env.smtp.host})`
         : "Email: not configured. Invitations and password resets give links to share instead.",
     );
+    startWeeklySummaryScheduler();
   });
 
   const shutdown = (signal: string) => {

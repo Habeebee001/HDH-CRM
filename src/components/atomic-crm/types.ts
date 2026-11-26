@@ -16,6 +16,12 @@ export type SignUpData = {
   last_name: string;
 };
 
+/**
+ * admin: everything; manager: every record of their workspaces;
+ * sales_rep: only the contacts and deals they own (companies are shared)
+ */
+export type SalesRole = "admin" | "manager" | "sales_rep";
+
 export type SalesFormData = {
   avatar?: string;
   email: string;
@@ -24,6 +30,7 @@ export type SalesFormData = {
   first_name: string;
   last_name: string;
   administrator: boolean;
+  role?: SalesRole;
   disabled: boolean;
 };
 
@@ -31,6 +38,9 @@ export type Sale = {
   first_name: string;
   last_name: string;
   administrator: boolean;
+  role?: SalesRole;
+  /** Asked for an account on the sign-in page; an administrator approves it */
+  pending_approval?: boolean;
   avatar?: RAFile;
   disabled?: boolean;
   user_id: string;

@@ -7,6 +7,9 @@ import { SearchInput } from "@/components/admin/search-input";
 import { Badge } from "@/components/ui/badge";
 
 import { TopToolbar } from "../layout/TopToolbar";
+import type { Sale } from "../types";
+import { AccessRequestsPanel } from "./AccessRequestsPanel";
+import { roleLabel, roleOf } from "./roles";
 import { PendingInvitePanel } from "./ShareLinkDialog";
 
 const SalesListActions = () => (
@@ -18,20 +21,22 @@ const SalesListActions = () => (
 
 const filters = [<SearchInput source="q" alwaysOn />];
 
+const ROLE_BADGE: Record<string, string> = {
+  admin: "border-brand/60 bg-brand-soft/50 text-foreground",
+  manager: "border-sky-300/80 dark:border-sky-700",
+  sales_rep: "border-border",
+};
+
 const OptionsField = (_props: { label?: string | boolean }) => {
-  const record = useRecordContext();
+  const record = useRecordContext<Sale>();
   const translate = useTranslate();
   if (!record) return null;
+  const role = roleOf(record);
   return (
     <div className="flex flex-row gap-1">
-      {record.administrator && (
-        <Badge
-          variant="outline"
-          className="border-blue-300 dark:border-blue-700"
-        >
-          {translate("resources.sales.fields.administrator")}
-        </Badge>
-      )}
+      <Badge variant="outline" className={ROLE_BADGE[role]}>
+        {roleLabel(role)}
+      </Badge>
       {record.disabled && (
         <Badge
           variant="outline"
@@ -50,7 +55,9 @@ export function SalesList() {
       filters={filters}
       actions={<SalesListActions />}
       sort={{ field: "first_name", order: "ASC" }}
+      filter={{ "pending_approval@neq": true }}
     >
+      <AccessRequestsPanel />
       <PendingInvitePanel />
       <DataTable bulkActionButtons={false}>
         <DataTable.Col source="first_name" />

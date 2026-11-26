@@ -122,10 +122,35 @@ export const toIsoDateTime = (cell: ImportCell): string | undefined => {
   return toIsoDate(text);
 };
 
+/** Naira per US dollar, to convert the amounts written in naira */
+export const NAIRA_PER_DOLLAR = 1550;
+
+const NAIRA = /₦|\bngn\b|naira|\(n\)|^\s*n(?=\s*[\d.])/i;
+
+/** Whether a cell ("₦4,500,000", "N 250k") or a header ("Amount (₦)") is in naira */
+export const isNaira = (text: unknown): boolean =>
+  typeof text === "string" && NAIRA.test(text);
+
 /**
- * Money as a whole number of naira (or of any currency), the way people type
- * it: `4500000`, `4,500,000.00`, `₦4,500,000`, `N4,500,000`, `NGN 4.5m`, `250k`.
- * Undefined when the cell is empty or holds no amount.
+ * Money as a whole number of dollars. CRM amounts are in US dollars: the
+ * amounts written in naira (in the cell, or in a naira column when `inNaira`)
+ * are converted at NAIRA_PER_DOLLAR.
+ */
+export const toDollars = (
+  cell: ImportCell,
+  inNaira = false,
+): number | undefined => {
+  const amount = toAmount(cell);
+  if (amount === undefined) return undefined;
+  return inNaira || isNaira(cell)
+    ? Math.round(amount / NAIRA_PER_DOLLAR)
+    : amount;
+};
+
+/**
+ * Money as a whole number, in the currency it is written in, the way people
+ * type it: `4500000`, `4,500,000.00`, `$45,000`, `₦4,500,000`, `N4,500,000`,
+ * `NGN 4.5m`, `250k`. Undefined when the cell is empty or holds no amount.
  */
 export const toAmount = (cell: ImportCell): number | undefined => {
   if (typeof cell === "number") {

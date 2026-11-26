@@ -38,7 +38,7 @@ import {
   type Req,
   type Res,
 } from "./http.ts";
-import { page, recoveryEmail, sendMail } from "./mail.ts";
+import { accessRequestEmail, page, recoveryEmail, sendMail } from "./mail.ts";
 import { allow, hit, isLimited, reset as resetLimit } from "./rateLimit.ts";
 import { log } from "./log.ts";
 
@@ -322,6 +322,17 @@ const passwordGrant = async (req: Req, res: Res) => {
   }
   resetLimit(failures);
   if (isBanned(user)) {
+    const pending = await pool.query(
+      "select 1 from public.sales where user_id = $1 and pending_approval",
+      [user.id],
+    );
+    if (pending.rowCount) {
+      throw new AuthError(
+        400,
+        "pending_approval",
+        "Your account request is waiting for an administrator's approval. You can sign in as soon as it is approved.",
+      );
+    }
     throw new AuthError(400, "user_banned", "User is banned");
   }
   const session = await withTransaction((db) => createSession(db, user, req));
@@ -393,31 +404,77 @@ const signup = async (req: Req, res: Res) => {
   };
   const encrypted = await hashPassword(password);
 
-  const session = await withTransaction(async (db) => {
+  const outcome = await withTransaction(async (db) => {
     await db.query("select pg_advisory_xact_lock(hashtext('hdh-crm-signup'))");
     const { rows } = await db.query("select 1 from auth.users limit 1");
-    if (rows.length > 0) {
-      // Like Atomic CRM: only the first user signs up; others are invited.
-      throw new AuthError(422, "signup_disabled", "Signups not allowed for this instance");
+    if (rows.length === 0) {
+      // The first account is the administrator's
+      if (env.adminEmail && email !== env.adminEmail) {
+        throw new AuthError(
+          403,
+          "signup_disabled",
+          "This CRM is reserved for its owner: sign up with the owner's email address.",
+        );
+      }
+      const user = (
+        await db.query<DbUser>(
+          `insert into auth.users (email, encrypted_password, raw_user_meta_data, email_confirmed_at)
+           values ($1, $2, $3, now()) returning *`,
+          [email, encrypted, JSON.stringify(metadata)],
+        )
+      ).rows[0];
+      return { session: await createSession(db, user, req) };
     }
-    if (env.adminEmail && email !== env.adminEmail) {
+
+    // Everybody else asks for an account: it stays locked until an
+    // administrator approves it and chooses its role and workspaces.
+    const existing = await db.query("select 1 from auth.users where lower(email) = $1", [email]);
+    if (existing.rowCount) {
       throw new AuthError(
-        403,
-        "signup_disabled",
-        "This CRM is reserved for its owner: sign up with the owner's email address.",
+        422,
+        "user_already_exists",
+        "An account with this email address already exists. Sign in, or ask an administrator for a password link.",
       );
     }
+    const waiting = await db.query<{ count: number }>(
+      "select count(*)::int as count from public.sales where pending_approval",
+    );
+    if (waiting.rows[0].count >= 100) {
+      throw new AuthError(429, "over_request_rate_limit", "Too many account requests are waiting. Please try again later.");
+    }
+    const id = randomUUID();
+    // The invitation row lets the sign-up trigger create the team member
+    await db.query("insert into public.user_invitations (user_id) values ($1)", [id]);
     const user = (
       await db.query<DbUser>(
-        `insert into auth.users (email, encrypted_password, raw_user_meta_data, email_confirmed_at)
-         values ($1, $2, $3, now()) returning *`,
-        [email, encrypted, JSON.stringify(metadata)],
+        `insert into auth.users (id, email, encrypted_password, raw_user_meta_data, email_confirmed_at, banned_until)
+         values ($1, $2, $3, $4, now(), now() + interval '${BAN_DURATION}') returning *`,
+        [id, email, encrypted, JSON.stringify(metadata)],
       )
     ).rows[0];
-    return createSession(db, user, req);
+    await db.query(
+      "update public.sales set pending_approval = true, disabled = true, role = 'sales_rep' where user_id = $1",
+      [id],
+    );
+    const admins = await db.query<{ email: string }>(
+      "select email from public.sales where administrator and not disabled",
+    );
+    return { request: user, admins: admins.rows.map((row) => row.email) };
   });
-  log.info(`First user signed up: ${email}`);
-  sendJson(res, 200, session);
+
+  if ("session" in outcome) {
+    log.info(`First user signed up: ${email}`);
+    sendJson(res, 200, outcome.session);
+    return;
+  }
+  log.info(`Account requested: ${email}`);
+  const name = [metadata.first_name, metadata.last_name].filter(Boolean).join(" ");
+  const link = `${env.appUrl || publicOrigin(req)}/#/sales`;
+  for (const admin of outcome.admins) {
+    void sendMail(accessRequestEmail({ to: admin, name, email, link }));
+  }
+  // No session: the account can be used once approved
+  sendJson(res, 200, { ...userJson(outcome.request), pending_approval: true });
 };
 
 const getUser = async (req: Req, res: Res) => {

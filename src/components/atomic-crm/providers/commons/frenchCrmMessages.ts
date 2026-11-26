@@ -296,6 +296,7 @@ export const frenchCrmMessages = {
         secondary_email: "E-mail secondaire",
         secondary_emails: "E-mails secondaires",
         administrator: "Admin",
+        role: "Rôle",
         disabled: "Désactivé",
       },
       create: {

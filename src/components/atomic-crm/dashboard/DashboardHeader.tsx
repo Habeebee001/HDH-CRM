@@ -32,7 +32,7 @@ export const DashboardHeader = () => {
   }).format(now);
 
   return (
-    <div className="mb-8 flex flex-col gap-5 border-b border-border pb-8 md:flex-row md:items-end md:justify-between">
+    <div className="mb-7 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
       <div>
         <p className="eyebrow">
           {today}

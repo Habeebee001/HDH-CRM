@@ -7,6 +7,9 @@
  *   PATCH /functions/v1/update_password  password link for the current user
  *   POST  /functions/v1/password_link    password link for a user (administrators)
  *   POST  /functions/v1/merge_contacts   merge two contacts
+ *   POST  /functions/v1/access_requests  approve or decline an account request (administrators)
+ *   GET   /functions/v1/weekly_summary   preview of the weekly summary e-mail (administrators)
+ *   POST  /functions/v1/weekly_summary   send the weekly summary now (administrators)
  *
  * Inbound email (postmark) and the MCP server are not ported.
  */
@@ -20,9 +23,18 @@ import {
   revokeSessions,
   type AuthContext,
 } from "./auth.ts";
-import { HttpError, isEmail, readJson, sendJson, type Req, type Res } from "./http.ts";
-import { inviteEmail, recoveryEmail, sendMail } from "./mail.ts";
+import { HttpError, isEmail, publicOrigin, readJson, sendJson, type Req, type Res } from "./http.ts";
+import { emailConfigured, env } from "./env.ts";
+import { accessApprovedEmail, inviteEmail, recoveryEmail, sendMail } from "./mail.ts";
 import { log } from "./log.ts";
+import {
+  buildWeeklySummary,
+  lastSentSummary,
+  nextSendTime,
+  SCHEDULE,
+  sendWeeklySummary,
+  summaryRecipients,
+} from "./weeklySummary.ts";
 
 type Sale = {
   id: number;
@@ -31,9 +43,32 @@ type Sale = {
   first_name: string;
   last_name: string;
   administrator: boolean;
+  role: Role;
+  pending_approval: boolean;
   disabled: boolean;
   secondary_emails: string[];
   avatar: unknown;
+};
+
+const ROLES = ["admin", "manager", "sales_rep"] as const;
+type Role = (typeof ROLES)[number];
+
+/** The role a form asks for: `role`, or the older `administrator` flag */
+const requestedRole = (body: { role?: unknown; administrator?: unknown }): Role | undefined => {
+  if (typeof body.role === "string" && (ROLES as readonly string[]).includes(body.role)) {
+    return body.role as Role;
+  }
+  if (body.administrator === true) return "admin";
+  return undefined;
+};
+
+/** Refuses to leave the CRM without an active administrator */
+const keepAnAdministrator = async (db: Queryable, salesId: number) => {
+  const { rows } = await db.query<{ count: number }>(
+    "select count(*)::int as count from public.sales where administrator and not disabled and id <> $1",
+    [salesId],
+  );
+  if (rows[0].count === 0) throw fail(400, "The CRM needs at least one active administrator");
 };
 
 const MAX_SECONDARY_EMAILS = 10;
@@ -111,8 +146,11 @@ const inviteUser = async (req: Req, res: Res, current: Sale) => {
     last_name?: string;
     disabled?: boolean;
     administrator?: boolean;
+    role?: string;
   }>(req);
   if (!current.administrator) throw fail(401, "Not Authorized");
+  // Least privilege by default: a sales rep sees their own clients and deals
+  const role = requestedRole(body) ?? "sales_rep";
 
   const email = String(body.email ?? "").trim().toLowerCase();
   if (!isEmail(email)) throw fail(400, "Invalid email address", { code: "invalid_email", email });
@@ -138,8 +176,8 @@ const inviteUser = async (req: Req, res: Res, current: Sale) => {
     }
     const created = (
       await db.query<Sale>(
-        "update public.sales set disabled = $2, administrator = $3 where user_id = $1 returning *",
-        [userId, body.disabled === true, body.administrator === true],
+        "update public.sales set disabled = $2, role = $3 where user_id = $1 returning *",
+        [userId, body.disabled === true, role],
       )
     ).rows[0];
     // The new user can open the workspace they were invited from; administrators
@@ -168,6 +206,7 @@ const patchUser = async (req: Req, res: Res, current: Sale) => {
     last_name?: string;
     avatar?: unknown;
     administrator?: boolean;
+    role?: string;
     disabled?: boolean;
   }>(req);
   const sale = await getSaleById(pool, body.sales_id);
@@ -241,11 +280,25 @@ const patchUser = async (req: Req, res: Res, current: Sale) => {
         JSON.stringify(secondaryEmails),
       ]);
     }
-    // Only administrators can change the administrator and disabled flags.
+    // Only administrators can change roles and the disabled flag.
     if (current.administrator) {
+      const role =
+        typeof body.role === "string"
+          ? requestedRole(body)
+          : body.administrator === undefined
+            ? undefined
+            : body.administrator
+              ? "admin"
+              : sale.role === "admin"
+                ? "manager"
+                : sale.role;
+      if (body.role !== undefined && !role) throw fail(400, "Unknown role");
+      if (sale.role === "admin" && ((role && role !== "admin") || body.disabled === true)) {
+        await keepAnAdministrator(db, sale.id);
+      }
       await db.query(
-        "update public.sales set disabled = $2, administrator = coalesce($3, administrator) where user_id = $1",
-        [sale.user_id, body.disabled === true, body.administrator ?? null],
+        "update public.sales set disabled = $2, role = coalesce($3, role) where user_id = $1",
+        [sale.user_id, body.disabled === true, role ?? null],
       );
       if (body.disabled === true) await revokeSessions(db, sale.user_id);
     }
@@ -295,12 +348,16 @@ const mergeContacts = async (req: Req, res: Res, context: AuthContext) => {
   }
   // merge_contacts runs with the server's rights (no row level security):
   // both contacts must be in one workspace this user may open.
-  const { rows } = await pool.query<{ workspace_id: number }>(
-    "select workspace_id from public.contacts where id = any($1::bigint[])",
+  const { rows } = await pool.query<{ workspace_id: number; sales_id: number | null }>(
+    "select workspace_id, sales_id from public.contacts where id = any($1::bigint[])",
     [[loserId, winnerId]],
   );
   if (rows.length !== 2 || rows[0].workspace_id !== rows[1].workspace_id) {
     throw fail(400, "Both contacts must exist in the same workspace");
+  }
+  const current = await getSaleByUserId(pool, context.user.id);
+  if (current?.role === "sales_rep" && rows.some((row) => row.sales_id !== current.id)) {
+    throw fail(403, "Sales reps can only merge their own contacts");
   }
   const access = await pool.query<{ allowed: boolean }>(
     "select public.user_can_access_workspace($1, $2) as allowed",
@@ -313,6 +370,82 @@ const mergeContacts = async (req: Req, res: Res, context: AuthContext) => {
     throw fail(500, `Failed to merge contacts: ${(error as Error).message}`);
   }
   sendJson(res, 200, { success: true, winnerId });
+};
+
+/** An administrator approves an account request (with its role and workspaces) or declines it */
+const accessRequest = async (req: Req, res: Res, current: Sale) => {
+  if (!current.administrator) throw fail(401, "Not Authorized");
+  const body = await readJson<{
+    sales_id?: number;
+    action?: "approve" | "decline";
+    role?: string;
+    workspace_ids?: number[];
+  }>(req);
+  const sale = await getSaleById(pool, body.sales_id);
+  if (!sale || !sale.pending_approval) throw fail(404, "No pending request for this user");
+
+  if (body.action === "decline") {
+    await withTransaction(async (db) => {
+      await db.query("delete from public.sales where id = $1", [sale.id]);
+      await db.query("delete from auth.users where id = $1", [sale.user_id]);
+    });
+    log.info(`Account request declined: ${sale.email}`);
+    sendJson(res, 200, { data: { declined: true } });
+    return;
+  }
+  if (body.action !== "approve") throw fail(400, "action must be approve or decline");
+
+  const role = requestedRole(body) ?? "sales_rep";
+  const workspaceIds = (Array.isArray(body.workspace_ids) ? body.workspace_ids : [])
+    .map(Number)
+    .filter(Number.isSafeInteger);
+  if (role !== "admin" && workspaceIds.length === 0) {
+    throw fail(400, "Choose at least one workspace", { code: "workspace_required" });
+  }
+  const approved = await withTransaction(async (db) => {
+    await db.query(
+      "update public.sales set pending_approval = false, disabled = false, role = $2 where id = $1",
+      [sale.id, role],
+    );
+    await db.query("update auth.users set banned_until = null, updated_at = now() where id = $1", [sale.user_id]);
+    await db.query(
+      `insert into public.workspace_members (workspace_id, sales_id)
+       select w.id, $1 from public.workspaces w where w.id = any($2::bigint[])
+       on conflict do nothing`,
+      [sale.id, workspaceIds],
+    );
+    return getSaleById(db, sale.id);
+  });
+  const emailSent = await sendMail(
+    accessApprovedEmail({ to: sale.email, link: env.appUrl || publicOrigin(req) }),
+  );
+  log.info(`Account request approved: ${sale.email} (${role})`);
+  sendJson(res, 200, { data: approved, email_sent: emailSent });
+};
+
+/** Preview (GET) or send now (POST) the weekly summary e-mail */
+const weeklySummary = async (req: Req, res: Res, current: Sale) => {
+  if (!current.administrator) throw fail(401, "Not Authorized");
+  if (req.method === "GET") {
+    const summary = await buildWeeklySummary();
+    sendJson(res, 200, {
+      data: {
+        subject: summary.subject,
+        html: summary.html,
+        recipients: await summaryRecipients(),
+        email_configured: emailConfigured(),
+        schedule: SCHEDULE,
+        next_send: nextSendTime().toISOString(),
+        last_sent: await lastSentSummary(),
+      },
+    });
+    return;
+  }
+  const body = await readJson<{ to_me?: boolean }>(req);
+  const result = await sendWeeklySummary(body.to_me ? [current.email] : undefined);
+  sendJson(res, 200, {
+    data: { sent: result.sent, recipients: result.recipients, email_configured: emailConfigured() },
+  });
 };
 
 export const handleFunctions = async (req: Req, res: Res, url: URL) => {
@@ -330,6 +463,14 @@ export const handleFunctions = async (req: Req, res: Res, url: URL) => {
     if (name === "password_link" && method === "POST") {
       const { sale } = await requireSale(req);
       return await passwordLink(req, res, sale);
+    }
+    if (name === "access_requests" && method === "POST") {
+      const { sale } = await requireSale(req);
+      return await accessRequest(req, res, sale);
+    }
+    if (name === "weekly_summary" && (method === "GET" || method === "POST")) {
+      const { sale } = await requireSale(req);
+      return await weeklySummary(req, res, sale);
     }
     if (name === "merge_contacts" && method === "POST") {
       const context = await requireSale(req);

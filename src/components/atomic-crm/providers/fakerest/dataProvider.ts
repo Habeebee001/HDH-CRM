@@ -28,7 +28,11 @@ import { getCompanyAvatar } from "../commons/getCompanyAvatar";
 import { getContactAvatar } from "../commons/getContactAvatar";
 import { mergeContacts } from "../commons/mergeContacts";
 import { getSearchResults } from "./search";
-import type { CrmDataProvider, PasswordLinkResult } from "../types";
+import type {
+  CrmDataProvider,
+  PasswordLinkResult,
+  WeeklySummaryInfo,
+} from "../types";
 import {
   authProvider as defaultAuthProvider,
   USER_STORAGE_KEY,
@@ -330,6 +334,20 @@ export const createDataProvider = ({
     // The demo has a single workspace: there are no members to choose
     setWorkspaceMembers: async () => {
       throw new Error("Workspaces are not available in the demo");
+    },
+    // The demo has no account requests and sends no e-mail
+    reviewAccessRequest: async (): Promise<{ email_sent?: boolean }> => {
+      throw new Error("Account requests are not available in the demo");
+    },
+    getWeeklySummary: async (): Promise<WeeklySummaryInfo> => {
+      throw new Error("The weekly summary is not available in the demo");
+    },
+    sendWeeklySummary: async (): Promise<{
+      sent: boolean;
+      recipients: string[];
+      email_configured: boolean;
+    }> => {
+      throw new Error("The weekly summary is not available in the demo");
     },
     globalSearch: async (
       query: string,

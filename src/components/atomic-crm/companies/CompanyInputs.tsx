@@ -1,4 +1,9 @@
-import { required, useRecordContext, useTranslate } from "ra-core";
+import {
+  required,
+  useGetIdentity,
+  useRecordContext,
+  useTranslate,
+} from "ra-core";
 import { ReferenceInput } from "@/components/admin/reference-input";
 import { TextInput } from "@/components/admin/text-input";
 import { SelectInput } from "@/components/admin/select-input";
@@ -142,6 +147,8 @@ const CompanyAddressInputs = () => {
 
 const CompanyAdditionalInformationInputs = () => {
   const translate = useTranslate();
+  const { identity } = useGetIdentity();
+  const isSalesRep = identity?.role === "sales_rep";
   return (
     <div className="flex flex-col gap-4">
       <h6 className="text-lg font-semibold">
@@ -167,7 +174,11 @@ const CompanyAdditionalInformationInputs = () => {
           "disabled@neq": true,
         }}
       >
-        <SelectInput helperText={false} optionText={saleOptionRenderer} />
+        <SelectInput
+          helperText={false}
+          optionText={saleOptionRenderer}
+          readOnly={isSalesRep}
+        />
       </ReferenceInput>
     </div>
   );

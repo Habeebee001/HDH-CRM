@@ -74,8 +74,11 @@ const SHORTCUT_LABEL =
  */
 export const GlobalSearchButton = ({
   variant = "labelled",
+  className,
 }: {
   variant?: "labelled" | "icon";
+  /** Extra classes for the labelled trigger (e.g. its width) */
+  className?: string;
 }) => {
   const translate = useTranslate();
   const [open, setOpen] = useState(false);
@@ -126,7 +129,10 @@ export const GlobalSearchButton = ({
           onClick={openDialog}
           aria-label={translate("crm.search.title")}
           aria-keyshortcuts="Control+K Meta+K"
-          className="mr-2 w-40 justify-start bg-background px-3 font-normal text-muted-foreground lg:w-64"
+          className={cn(
+            "mr-2 w-40 justify-start bg-background px-3 font-normal text-muted-foreground lg:w-64",
+            className,
+          )}
         >
           <Search />
           <span className="flex-1 text-left">

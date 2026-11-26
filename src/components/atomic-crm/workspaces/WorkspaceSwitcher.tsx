@@ -22,8 +22,8 @@ import { useWorkspaces } from "./WorkspaceContext";
 export const WorkspaceSwitcher = ({
   variant = "default",
 }: {
-  /** "compact" for the mobile header: icon and a short name */
-  variant?: "default" | "compact";
+  /** "compact" for the mobile header: icon and a short name; "sidebar" for the wide layout */
+  variant?: "default" | "compact" | "sidebar";
 }) => {
   const { supported, workspaces, current, switchWorkspace } = useWorkspaces();
   const translate = useTranslate();
@@ -46,6 +46,7 @@ export const WorkspaceSwitcher = ({
             className={cn(
               "h-9 gap-2 rounded-md border border-white/10 bg-white/[0.04] px-3 text-sm font-medium text-foreground hover:bg-white/[0.08]",
               variant === "compact" && "h-8 max-w-[45vw] px-2",
+              variant === "sidebar" && "h-10 w-full justify-start rounded-xl",
             )}
           />
         }
@@ -54,7 +55,11 @@ export const WorkspaceSwitcher = ({
         <span
           className={cn(
             "truncate",
-            variant === "compact" ? "max-w-[30vw]" : "max-w-[11rem]",
+            variant === "compact"
+              ? "max-w-[30vw]"
+              : variant === "sidebar"
+                ? "flex-1 text-left"
+                : "max-w-[11rem]",
           )}
         >
           {current.name}

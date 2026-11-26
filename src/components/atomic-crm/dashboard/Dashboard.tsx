@@ -5,9 +5,13 @@ import type { Contact, ContactNote } from "../types";
 import { DashboardActivityLog } from "./DashboardActivityLog";
 import { DashboardHeader } from "./DashboardHeader";
 import { DashboardStepper } from "./DashboardStepper";
-import { DealsChart } from "./DealsChart";
 import { HotContacts } from "./HotContacts";
+import { KpiCards } from "./KpiCards";
+import { LatestDeals } from "./LatestDeals";
+import { PipelineDonut } from "./PipelineDonut";
+import { RevenueAnalytics } from "./RevenueAnalytics";
 import { TasksList } from "./TasksList";
+import { TopPerformers } from "./TopPerformers";
 import { Welcome } from "./Welcome";
 
 export const Dashboard = () => {
@@ -45,25 +49,25 @@ export const Dashboard = () => {
     return <DashboardStepper step={2} contactId={dataContact?.[0]?.id} />;
   }
 
+  // After the CRMi reference: headline cards with rings, revenue analytics
+  // with this day / week tiles, a pipeline donut, the latest deals with their
+  // stage as pills (after the CRM Overview reference), tasks and activity.
   return (
     <>
       <DashboardHeader />
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-        <div className="md:col-span-3">
-          <div className="flex flex-col gap-4">
-            {config.isDemo ? <Welcome /> : null}
-            <HotContacts />
-          </div>
+      <KpiCards />
+      <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-12">
+        <div className="flex min-w-0 flex-col gap-6 xl:col-span-8">
+          {config.isDemo ? <Welcome /> : null}
+          {totalDeal ? <RevenueAnalytics /> : null}
+          {totalDeal ? <LatestDeals /> : null}
+          <DashboardActivityLog />
         </div>
-        <div className="md:col-span-6">
-          <div className="flex flex-col gap-6">
-            {totalDeal ? <DealsChart /> : null}
-            <DashboardActivityLog />
-          </div>
-        </div>
-
-        <div className="md:col-span-3">
+        <div className="flex min-w-0 flex-col gap-6 xl:col-span-4">
+          {totalDeal ? <PipelineDonut /> : null}
           <TasksList />
+          <HotContacts />
+          {totalDeal ? <TopPerformers /> : null}
         </div>
       </div>
     </>

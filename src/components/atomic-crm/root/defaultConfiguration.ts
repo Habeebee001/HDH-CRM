@@ -10,7 +10,7 @@ import lightModeLogo from "./logos/hdh_mark_ink.svg";
 export const defaultDarkModeLogo = darkModeLogo;
 export const defaultLightModeLogo = lightModeLogo;
 
-export const defaultCurrency = "NGN";
+export const defaultCurrency = "USD";
 
 export const defaultTitle = "HDH CRM";
 

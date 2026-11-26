@@ -13,6 +13,7 @@
  * errors.
  */
 import type { ImportableResourceName } from "./useImportableResources";
+import { isNaira } from "./parseCell";
 
 /** "Amount (₦)" → "amount", "E-mail 1 - Value" → "e_mail_1_value" */
 export const normalizeHeader = (header: unknown): string =>
@@ -533,6 +534,15 @@ export const planColumns = (
                   _: `This file has no column for the deal name (found: ${found}). Name that column “name” or “Deal Name” (a “Client” or “Company” column works too), or download the sample.`,
                 },
               },
+      };
+    }
+    // An "Amount (₦)" column holds naira: its amounts are converted to dollars
+    if (isNaira(plan.matched.amount)) {
+      return {
+        ...plan,
+        names: plan.names.map((name) =>
+          name === "amount" ? "amount_ngn" : name,
+        ),
       };
     }
     return plan;

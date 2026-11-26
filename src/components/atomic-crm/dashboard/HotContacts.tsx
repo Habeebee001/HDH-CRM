@@ -3,7 +3,6 @@ import { useGetIdentity, useGetList, useTranslate } from "ra-core";
 import { Link } from "react-router";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Card } from "@/components/ui/card";
 import {
   Tooltip,
   TooltipContent,
@@ -33,12 +32,12 @@ export const HotContacts = () => {
   );
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center">
-        <div className="mr-3 flex">
-          <Users className="text-brand w-5 h-5" />
+    <div className="glass-card flex flex-col rounded-2xl">
+      <div className="flex items-center gap-3 border-b border-foreground/[0.06] px-5 py-4">
+        <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand">
+          <Users className="size-[1.05rem]" />
         </div>
-        <h2 className="font-display text-2xl text-foreground">
+        <h2 className="font-display text-xl leading-tight text-foreground">
           {translate("resources.contacts.hot.title")}
         </h2>
         <TooltipProvider>
@@ -63,7 +62,7 @@ export const HotContacts = () => {
           </Tooltip>
         </TooltipProvider>
       </div>
-      <Card className="py-0">
+      <div className="py-1">
         <SimpleList<Contact>
           linkType="show"
           data={contactData}
@@ -96,7 +95,7 @@ export const HotContacts = () => {
             </div>
           }
         />
-      </Card>
+      </div>
     </div>
   );
 };

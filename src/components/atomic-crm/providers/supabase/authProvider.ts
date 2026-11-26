@@ -17,6 +17,7 @@ const getBaseAuthProvider = () =>
         id: sale.id,
         fullName: `${sale.first_name} ${sale.last_name}`,
         avatar: sale.avatar?.src,
+        role: sale.role ?? (sale.administrator ? "admin" : "manager"),
       };
     },
   });
@@ -69,7 +70,7 @@ const getSale = async () => {
 
   const { data: dataSale, error: errorSale } = await getSupabaseClient()
     .from("sales")
-    .select("id, first_name, last_name, avatar, administrator")
+    .select("id, first_name, last_name, avatar, administrator, role")
     .match({ user_id: dataSession?.session?.user.id })
     .single();
 
@@ -136,6 +137,13 @@ export const getAuthProvider = (): AuthProvider => {
       ) {
         return;
       }
+      // Users are asking for an account, nothing to do
+      if (
+        window.location.pathname === "/request-account" ||
+        window.location.hash.includes("#/request-account")
+      ) {
+        return;
+      }
 
       const isInitialized = await getIsInitialized();
 
@@ -157,8 +165,9 @@ export const getAuthProvider = (): AuthProvider => {
       const sale = await getSale();
       if (sale == null) return false;
 
-      // Compute access rights from the sale role
-      const role = sale.administrator ? "admin" : "user";
+      // Compute access rights from the sale role (cached sales from before
+      // roles existed only have the administrator flag)
+      const role = sale.role ?? (sale.administrator ? "admin" : "manager");
       return canAccess(role, params);
     },
     getAuthorizationDetails(authorizationId: string) {

@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  isNaira,
+  NAIRA_PER_DOLLAR,
+  toDollars,
   toAmount,
   toBoolean,
   toConfiguredValue,
@@ -248,5 +251,25 @@ describe("toPhone", () => {
     expect(toPhone("012345678")).toBe("012345678");
     expect(toPhone("5551234567")).toBe("5551234567");
     expect(toPhone("")).toBeUndefined();
+  });
+});
+
+describe("toDollars", () => {
+  it("keeps dollar amounts and converts naira at the CRM rate", () => {
+    expect(toDollars("$1,200")).toBe(1200);
+    expect(toDollars(2500)).toBe(2500);
+    expect(toDollars("₦1,550,000")).toBe(1000);
+    expect(toDollars("N 3.1m")).toBe(2000);
+    // a naira column: plain numbers are naira too
+    expect(toDollars(155000, true)).toBe(100);
+    expect(toDollars("", true)).toBeUndefined();
+  });
+
+  it("recognises naira in cells and headers", () => {
+    expect(isNaira("Amount (₦)")).toBe(true);
+    expect(isNaira("Value (NGN)")).toBe(true);
+    expect(isNaira("Amount ($)")).toBe(false);
+    expect(isNaira("Name")).toBe(false);
+    expect(NAIRA_PER_DOLLAR).toBe(1550);
   });
 });

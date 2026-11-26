@@ -5,8 +5,8 @@ import { useConfigurationContext } from "../root/ConfigurationContext";
 import { useCompanyResolver } from "./useCompanyResolver";
 import { createEachRow, refuseRow } from "./createEachRow";
 import {
-  toAmount,
   toConfiguredValues,
+  toDollars,
   toIsoDate,
   toStage,
   toText,
@@ -82,8 +82,12 @@ export function useDealImport(): ProcessImportBatch {
               stage,
               description: toText(row.description),
               // amount lands in a bigint column, which rejects "4500.50" or
-              // "₦4,500,000": toAmount returns a whole number
-              amount: toAmount(row.amount),
+              // "$45,000": toDollars returns a whole number of dollars, and
+              // converts the amounts written in naira ("₦4,500,000")
+              amount:
+                row.amount_ngn !== undefined
+                  ? toDollars(row.amount_ngn, true)
+                  : toDollars(row.amount),
               expected_closing_date: toClosingDate(row.expected_closing_date),
               sales_id: identity?.id,
               index: indexes.get(row) ?? 0,

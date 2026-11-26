@@ -14,6 +14,7 @@ import type {
   RAFile,
   Sale,
   SalesFormData,
+  SalesRole,
   SearchResourceName,
   SearchResult,
   SignUpData,
@@ -25,6 +26,16 @@ import { getIsInitialized } from "./authProvider";
 import { searchDealCategories } from "./searchDealCategories";
 import { getSupabaseClient } from "./supabase";
 import { withWorkspaceHeader } from "../../workspaces/currentWorkspace";
+
+export type WeeklySummaryInfo = {
+  subject: string;
+  html: string;
+  recipients: string[];
+  email_configured: boolean;
+  schedule: string;
+  next_send: string;
+  last_sent: { week: string; sent_at: string; recipients: string } | null;
+};
 
 const getBaseDataProvider = () =>
   supabaseDataProvider({
@@ -169,6 +180,7 @@ const getDataProviderWithCustomMethods = () => {
         first_name,
         last_name,
         administrator,
+        role,
         avatar,
         disabled,
       } = data;
@@ -185,6 +197,7 @@ const getDataProviderWithCustomMethods = () => {
             first_name,
             last_name,
             administrator,
+            role,
             disabled,
             avatar,
           },
@@ -289,6 +302,58 @@ const getDataProviderWithCustomMethods = () => {
         throw new HttpError("Failed to search", status, error);
       }
       return data ?? [];
+    },
+    /** Approves an account request with its role and workspaces, or declines it (administrators) */
+    async reviewAccessRequest(
+      salesId: Identifier,
+      decision:
+        | { action: "approve"; role: SalesRole; workspace_ids: Identifier[] }
+        | { action: "decline" },
+    ): Promise<{ email_sent?: boolean }> {
+      const { data, error } = await getSupabaseClient().functions.invoke<{
+        data: unknown;
+        email_sent?: boolean;
+      }>("access_requests", {
+        method: "POST",
+        body: {
+          sales_id: salesId,
+          ...decision,
+          ...("workspace_ids" in decision
+            ? { workspace_ids: decision.workspace_ids.map(Number) }
+            : {}),
+        },
+      });
+      if (error) {
+        const details = await (async () => {
+          try {
+            return (await error?.context?.json()) ?? {};
+          } catch {
+            return {};
+          }
+        })();
+        throw new Error(details?.message || "Failed to review the request");
+      }
+      return { email_sent: data?.email_sent };
+    },
+    /** The weekly summary e-mail: preview and schedule (administrators) */
+    async getWeeklySummary(): Promise<WeeklySummaryInfo> {
+      const { data, error } = await getSupabaseClient().functions.invoke<{
+        data: WeeklySummaryInfo;
+      }>("weekly_summary", { method: "GET" });
+      if (error || !data) throw new Error("Failed to load the weekly summary");
+      return data.data;
+    },
+    /** Sends the weekly summary now, to the usual recipients or to oneself */
+    async sendWeeklySummary(toMe = false): Promise<{
+      sent: boolean;
+      recipients: string[];
+      email_configured: boolean;
+    }> {
+      const { data, error } = await getSupabaseClient().functions.invoke<{
+        data: { sent: boolean; recipients: string[]; email_configured: boolean };
+      }>("weekly_summary", { method: "POST", body: { to_me: toMe } });
+      if (error || !data) throw new Error("Failed to send the weekly summary");
+      return data.data;
     },
     /** Chooses who may open a workspace (administrators only) */
     async setWorkspaceMembers(

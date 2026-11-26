@@ -40,12 +40,21 @@ describe("planColumns", () => {
     expect(plan.names.slice(0, 5)).toEqual([
       "name",
       "company",
-      "amount",
+      // A naira column is converted to dollars on import
+      "amount_ngn",
       "stage",
       "expected_closing_date",
     ]);
     // Unknown columns get a name no field uses
     expect(plan.names[5]).toMatch(/^__unused_5_/);
+  });
+
+  it("keeps dollar and unlabelled amounts as they are", () => {
+    expect(planColumns("deals", ["Deal", "Amount"]).names[1]).toBe("amount");
+    expect(planColumns("deals", ["Deal", "Value ($)"]).names[1]).toBe("amount");
+    expect(planColumns("deals", ["Deal", "Amount (₦)"]).names[1]).toBe(
+      "amount_ngn",
+    );
   });
 
   it("accepts a deals file without a deal name when it names the client", () => {

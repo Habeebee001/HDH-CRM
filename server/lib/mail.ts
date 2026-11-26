@@ -110,6 +110,45 @@ export const recoveryEmail = ({ to, link }: { to: string; link: string }): Mail 
   };
 };
 
+/** To the administrators: someone asked for an account on the sign-in page. */
+export const accessRequestEmail = ({
+  to,
+  name,
+  email,
+  link,
+}: {
+  to: string;
+  name: string;
+  email: string;
+  link: string;
+}): Mail => {
+  const who = name ? `${name} (${email})` : email;
+  return {
+    to,
+    subject: `New account request: ${name || email}`,
+    text: `${who} asked for an account on ${env.appName}.\n\nApprove or decline the request, and choose their role and workspaces, on the Users page:\n${link}`,
+    html: layout(
+      "New account request",
+      paragraph(`${who} asked for an account on ${env.appName}.`) +
+        paragraph("Approve or decline the request, and choose their role and workspaces, on the Users page."),
+      { label: "Review the request", url: link },
+    ),
+  };
+};
+
+/** To the person who asked: an administrator approved their account. */
+export const accessApprovedEmail = ({ to, link }: { to: string; link: string }): Mail => ({
+  to,
+  subject: `Your ${env.appName} account is ready`,
+  text: `An administrator approved your account on ${env.appName}. Sign in with the email address and password you chose:\n${link}`,
+  html: layout(
+    "Your account is ready",
+    paragraph(`An administrator approved your account on ${env.appName}.`) +
+      paragraph("Sign in with the email address and password you chose."),
+    { label: "Sign in", url: link },
+  ),
+});
+
 /** Standalone page shown by the server (e.g. before using a one-time link). */
 export const page = ({
   title,

@@ -90,7 +90,10 @@ export function SalesCreate() {
                 })}
               </p>
             ) : null}
-            <SimpleForm onSubmit={onSubmit as SubmitHandler<any>}>
+            <SimpleForm
+              onSubmit={onSubmit as SubmitHandler<any>}
+              defaultValues={{ role: "sales_rep" }}
+            >
               <SalesInputs />
             </SimpleForm>
           </CardContent>

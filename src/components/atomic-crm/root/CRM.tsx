@@ -23,6 +23,7 @@ import deals from "../deals";
 import { Layout } from "../layout/Layout";
 import { MobileLayout } from "../layout/MobileLayout";
 import { SignupPage } from "../login/SignupPage";
+import { RequestAccountPage } from "../login/RequestAccountPage";
 import { ConfirmationRequired } from "../login/ConfirmationRequired";
 import { ImportPage } from "../misc/ImportPage";
 import { ChangelogPage } from "../misc/ChangelogPage";
@@ -35,6 +36,7 @@ import { SettingsPageMobile } from "../settings/SettingsPageMobile";
 import { ProfilePage } from "../settings/ProfilePage";
 import { SettingsPage } from "../settings/SettingsPage";
 import { WorkspacesPage } from "../workspaces/WorkspacesPage";
+import { WeeklySummaryPage } from "../misc/WeeklySummaryPage";
 import {
   CONFIGURATION_STORE_KEY,
   type ConfigurationContextValue,
@@ -246,6 +248,10 @@ const DesktopAdmin = (
       <CustomRoutes noLayout>
         <Route path={SignupPage.path} element={<SignupPage />} />
         <Route
+          path={RequestAccountPage.path}
+          element={<RequestAccountPage />}
+        />
+        <Route
           path={ConfirmationRequired.path}
           element={<ConfirmationRequired />}
         />
@@ -261,6 +267,10 @@ const DesktopAdmin = (
         <Route path={ProfilePage.path} element={<ProfilePage />} />
         <Route path={SettingsPage.path} element={<SettingsPage />} />
         <Route path={WorkspacesPage.path} element={<WorkspacesPage />} />
+        <Route
+          path={WeeklySummaryPage.path}
+          element={<WeeklySummaryPage />}
+        />
         <Route path={ImportPage.path} element={<ImportPage />} />
         <Route path={ChangelogPage.path} element={<ChangelogPage />} />
       </CustomRoutes>
@@ -321,6 +331,10 @@ const MobileAdmin = (
       >
         <CustomRoutes noLayout>
           <Route path={SignupPage.path} element={<SignupPage />} />
+          <Route
+            path={RequestAccountPage.path}
+            element={<RequestAccountPage />}
+          />
           <Route
             path={ConfirmationRequired.path}
             element={<ConfirmationRequired />}

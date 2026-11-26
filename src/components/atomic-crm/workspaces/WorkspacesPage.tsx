@@ -59,6 +59,8 @@ const WorkspacesPageContent = () => {
   const { data: sales = [] } = useGetList<Sale>("sales", {
     pagination: { page: 1, perPage: 500 },
     sort: { field: "first_name", order: "ASC" },
+    // Account requests get their workspaces when they are approved
+    filter: { "pending_approval@neq": true },
   });
   const [editing, setEditing] = useState<Workspace | "new" | null>(null);
   const [deleting, setDeleting] = useState<Workspace | null>(null);
