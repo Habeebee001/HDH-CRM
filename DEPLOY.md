@@ -161,26 +161,34 @@ All are Railway **Variables** on the service.
 
 ### Send emails (weekly summary, account requests, invitations, password resets)
 
-**Brevo** (free: 300 emails a day):
+**Brevo** (free: 300 emails a day). Railway blocks outgoing SMTP on its Free,
+Trial and Hobby plans, so the CRM sends through Brevo's web API:
 
 1. Create an account at [brevo.com](https://www.brevo.com).
-2. **Senders, domains & dedicated IPs → Senders**: add and verify the address
-   the emails come from (Brevo emails it a confirmation link).
-3. **SMTP & API → SMTP**: note the *SMTP login* and create an *SMTP key*.
-4. Set these Railway variables, then redeploy:
+2. **Settings → Senders, domains, IPs → Senders → Add a sender**: add the
+   address the emails come from and confirm it (Brevo emails you a code or link).
+   Don't add gmail.com under *Domains*: that tab is only for a website
+   domain you own.
+3. **Settings → SMTP & API → API keys → Generate a new API key**, and copy it
+   (it starts with `xkeysib-`; an *SMTP* key, `xsmtpsib-`, won't work here).
+4. Set these Railway variables (Railway redeploys by itself):
 
-| Variable      | Brevo value                                   |
-| ------------- | --------------------------------------------- |
-| `SMTP_HOST`   | `smtp-relay.brevo.com`                        |
-| `SMTP_PORT`   | `587`                                         |
-| `SMTP_USER`   | the SMTP login (looks like `8a1b2c001@smtp-brevo.com`) |
-| `SMTP_PASS`   | the SMTP key                                  |
-| `SMTP_FROM`   | the verified sender, e.g. `HDH CRM <you@gmail.com>` |
-| `APP_URL`     | the app address, e.g. `https://hdh-crm-production.up.railway.app` (for the links in emails) |
+| Variable        | Value                                                        |
+| --------------- | ------------------------------------------------------------ |
+| `BREVO_API_KEY` | the API key                                                  |
+| `EMAIL_FROM`    | the verified sender, e.g. `HDH CRM <you@gmail.com>`          |
+| `APP_URL`       | the app address, e.g. `https://hdh-crm-production.up.railway.app` (for the links in emails) |
 
-Any other SMTP provider works the same way: Google Workspace / Gmail (with an
-[app password](https://myaccount.google.com/apppasswords), host
-`smtp.gmail.com`, port 465), Zoho, Resend, Postmark…
+With a free address (Gmail, Yahoo…) as sender, Brevo sends from one of its
+own addresses, still with the name "HDH CRM". Authenticating your own domain
+in Brevo (**Domains** tab) lets the emails come from e.g. `crm@yourcompany.com`.
+
+**SMTP instead** (Railway Pro, or another host that allows SMTP): set
+`SMTP_HOST=smtp-relay.brevo.com`, `SMTP_PORT=587`, `SMTP_USER` = the SMTP
+login, `SMTP_PASS` = the SMTP key, `SMTP_FROM` = the verified sender. Any SMTP
+provider works the same way (Gmail with an
+[app password](https://myaccount.google.com/apppasswords), Zoho, Postmark…).
+When `BREVO_API_KEY` is set, it is used instead of SMTP.
 
 ### Use your own domain
 

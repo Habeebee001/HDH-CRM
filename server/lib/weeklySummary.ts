@@ -365,7 +365,7 @@ export const startWeeklySummaryScheduler = () => {
   log.info(
     emailConfigured()
       ? `Weekly summary: ${SCHEDULE}`
-      : `Weekly summary: ${SCHEDULE}, once email is set up (SMTP_HOST…)`,
+      : `Weekly summary: ${SCHEDULE}, once email is set up (BREVO_API_KEY or SMTP_HOST)`,
   );
   const check = () =>
     sendIfDue().catch((error) => log.error("Weekly summary failed", error));

@@ -67,6 +67,19 @@ export const env = {
         : number(process.env.SMTP_PORT, 587) === 465,
   },
 
+  /**
+   * Brevo's HTTPS API. Railway blocks outgoing SMTP below its Pro plan, so on
+   * Free / Trial / Hobby plans email goes out through this API instead. Takes
+   * precedence over SMTP when set.
+   */
+  brevo: {
+    apiKey: process.env.BREVO_API_KEY || "",
+    apiUrl: process.env.BREVO_API_URL || "https://api.brevo.com/v3/smtp/email",
+  },
+
+  /** The sender address (must be a verified sender at the email provider) */
+  emailFrom: process.env.EMAIL_FROM || process.env.SMTP_FROM || process.env.SMTP_USER || "",
+
   inviteTtlHours: number(process.env.INVITE_TTL_HOURS, 168),
   recoveryTtlHours: number(process.env.RECOVERY_TTL_HOURS, 24),
   minPasswordLength: number(process.env.MIN_PASSWORD_LENGTH, 8),
@@ -83,4 +96,8 @@ export const env = {
   adminApi: flag(process.env.AUTH_ADMIN_API),
 };
 
-export const emailConfigured = () => env.smtp.host !== "";
+/** How email goes out: Brevo's HTTPS API, SMTP, or not at all */
+export const emailTransport = (): "brevo-api" | "smtp" | null =>
+  env.brevo.apiKey && env.emailFrom ? "brevo-api" : env.smtp.host ? "smtp" : null;
+
+export const emailConfigured = () => emailTransport() !== null;

@@ -1,43 +1,82 @@
 import nodemailer from "nodemailer";
-import { emailConfigured, env } from "./env.ts";
+import { emailTransport, env } from "./env.ts";
 import { escapeHtml } from "./http.ts";
 import { log } from "./log.ts";
 
-const transporter = emailConfigured()
-  ? nodemailer.createTransport({
-      host: env.smtp.host,
-      port: env.smtp.port,
-      secure: env.smtp.secure,
-      auth: env.smtp.user
-        ? { user: env.smtp.user, pass: env.smtp.pass }
-        : undefined,
-    })
-  : null;
+const transporter =
+  emailTransport() === "smtp"
+    ? nodemailer.createTransport({
+        host: env.smtp.host,
+        port: env.smtp.port,
+        secure: env.smtp.secure,
+        auth: env.smtp.user
+          ? { user: env.smtp.user, pass: env.smtp.pass }
+          : undefined,
+        // Fail fast when the host blocks outgoing SMTP
+        connectionTimeout: 15_000,
+        greetingTimeout: 15_000,
+      })
+    : null;
 
 type Mail = { to: string; subject: string; text: string; html: string };
 
+/** The bare address of EMAIL_FROM / SMTP_FROM ("HDH CRM <a@b.com>" → "a@b.com") */
+const senderAddress = () => env.emailFrom.replace(/^.*<|>.*$/g, "").trim();
+
+/** Sends through Brevo's HTTPS API (works where SMTP ports are blocked) */
+const sendWithBrevoApi = async (mail: Mail) => {
+  const response = await fetch(env.brevo.apiUrl, {
+    method: "POST",
+    headers: {
+      "api-key": env.brevo.apiKey,
+      "content-type": "application/json",
+      accept: "application/json",
+    },
+    body: JSON.stringify({
+      sender: { name: env.appName, email: senderAddress() },
+      to: mail.to
+        .split(",")
+        .map((address) => address.trim())
+        .filter(Boolean)
+        .map((email) => ({ email })),
+      subject: mail.subject,
+      htmlContent: mail.html,
+      textContent: mail.text,
+    }),
+    signal: AbortSignal.timeout(20_000),
+  });
+  if (!response.ok) {
+    const detail = (await response.text()).slice(0, 300);
+    throw new Error(`Brevo API answered ${response.status}: ${detail}`);
+  }
+};
+
 /**
- * Sends an email when SMTP is configured. Returns false (and logs the
+ * Sends an email when email is configured. Returns false (and logs the
  * message) otherwise, so callers can hand the link to an administrator.
  */
 export const sendMail = async (mail: Mail): Promise<boolean> => {
-  if (!transporter) {
-    log.info(`Email not sent (SMTP not configured) to ${mail.to}: ${mail.subject}`);
+  const transport = emailTransport();
+  if (!transport) {
+    log.info(`Email not sent (email not configured) to ${mail.to}: ${mail.subject}`);
     return false;
   }
   try {
-    await transporter.sendMail({
-      from: env.smtp.from
-        ? `"${env.appName}" <${env.smtp.from.replace(/^.*<|>.*$/g, "")}>`
-        : undefined,
-      to: mail.to,
-      subject: mail.subject,
-      text: mail.text,
-      html: mail.html,
-    });
+    if (transport === "brevo-api") {
+      await sendWithBrevoApi(mail);
+    } else {
+      await transporter!.sendMail({
+        from: env.emailFrom ? `"${env.appName}" <${senderAddress()}>` : undefined,
+        to: mail.to,
+        subject: mail.subject,
+        text: mail.text,
+        html: mail.html,
+      });
+    }
+    log.info(`Email sent to ${mail.to}: ${mail.subject}`);
     return true;
   } catch (error) {
-    log.error("Failed to send email", error);
+    log.error(`Failed to send email to ${mail.to}`, error);
     return false;
   }
 };

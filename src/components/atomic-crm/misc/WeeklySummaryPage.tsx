@@ -15,8 +15,8 @@ import { DashboardPanel } from "../dashboard/DashboardPanel";
 import type { CrmDataProvider } from "../providers/types";
 
 /**
- * The weekly summary e-mail (administrators): when it goes out, to whom,
- * whether e-mail is set up, a preview, and buttons to send it now.
+ * The weekly summary email (administrators): when it goes out, to whom,
+ * whether email is set up, a preview, and buttons to send it now.
  */
 export const WeeklySummaryPage = () => (
   <CanAccess resource="sales" action="list" accessDenied={<Navigate to="/" />}>
@@ -48,7 +48,7 @@ const WeeklySummaryContent = () => {
     onSuccess: (result) => {
       if (!result.email_configured) {
         notify(
-          "E-mail is not set up yet: add the Brevo SMTP settings first.",
+          "Email is not set up yet: add the Brevo key first.",
           { type: "warning" },
         );
       } else if (result.sent) {
@@ -56,7 +56,7 @@ const WeeklySummaryContent = () => {
           type: "success",
         });
       } else {
-        notify("The e-mail could not be sent. Check the SMTP settings.", {
+        notify("The email could not be sent. Check the Brevo key and the sender address.", {
           type: "error",
         });
       }
@@ -70,10 +70,10 @@ const WeeklySummaryContent = () => {
       <div className="mb-7">
         <p className="eyebrow">Reports</p>
         <h1 className="font-display mt-2 text-4xl leading-tight">
-          Weekly summary e-mail
+          Weekly summary email
         </h1>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-          Every Monday morning the CRM e-mails a summary of the past week:
+          Every Monday morning the CRM emails a summary of the past week:
           revenue won, new deals and contacts, the open pipeline, the biggest
           deals and what each workspace did. Amounts are in US dollars.
         </p>
@@ -100,7 +100,7 @@ const WeeklySummaryContent = () => {
         />
         <InfoTile
           icon={data?.email_configured ? CheckCircle2 : TriangleAlert}
-          label="E-mail"
+          label="Email"
           value={
             data
               ? data.email_configured
@@ -121,9 +121,10 @@ const WeeklySummaryContent = () => {
         <div className="glass-card mt-5 rounded-2xl border-l-4 border-l-brand p-5 text-sm">
           <p className="font-medium">To start receiving the summary</p>
           <p className="mt-1 text-muted-foreground">
-            The CRM sends e-mail through Brevo (free). Once the Brevo SMTP key
-            is added to the server settings, the summary goes out every Monday
-            at 08:00, and invitations and password resets are e-mailed too.
+            The CRM sends email through Brevo (free). Once the Brevo API key is
+            added to the server settings, the summary goes out every Monday at
+            08:00, and account requests, invitations and password resets are
+            emailed too.
           </p>
         </div>
       ) : null}

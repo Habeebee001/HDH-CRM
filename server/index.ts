@@ -12,7 +12,7 @@ import http from "node:http";
 import { randomBytes } from "node:crypto";
 import { runMigrations } from "./db/migrate.ts";
 import { pool } from "./lib/db.ts";
-import { emailConfigured, env } from "./lib/env.ts";
+import { emailTransport, env } from "./lib/env.ts";
 import { log } from "./lib/log.ts";
 import { handleAuth, setJwtSecret } from "./lib/auth.ts";
 import { handleStorage } from "./lib/storage.ts";
@@ -134,8 +134,10 @@ const main = async () => {
   server.listen(env.port, env.host, () => {
     log.info(`Listening on http://${env.host}:${env.port}`);
     log.info(
-      emailConfigured()
-        ? `Email: enabled (SMTP ${env.smtp.host})`
+      emailTransport() === "brevo-api"
+        ? `Email: enabled (Brevo API, from ${env.emailFrom})`
+        : emailTransport() === "smtp"
+          ? `Email: enabled (SMTP ${env.smtp.host})`
         : "Email: not configured. Invitations and password resets give links to share instead.",
     );
     startWeeklySummaryScheduler();
